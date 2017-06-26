@@ -1,6 +1,6 @@
 from genrust import extract_registers, REGPREFIX_NAME_FIXED
 import json
-from clocktypes import *
+from clocks import *
 
 class ClockManager(object):
     def __init__(self):
