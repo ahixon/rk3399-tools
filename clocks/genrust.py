@@ -3,11 +3,25 @@ import re
 import sys
 
 class RegisterAccess(object):
-    def __init__(self, name, op=None, prop=None, bits=None):
+    def __init__(self, name, op=None, prop=None, bits=None, wmask=False):
         self.name = name
         self.bitwise_op = op
         self.prop = prop
         self.bits = bits
+
+        # if writing to the low 16 bits requires a write-mask to the upper
+        # 16 bits to allow writes to take effect
+        self.wmask = wmask
+
+        # if writemask, then none of the data bits should be in the high 16 bits
+        if wmask:
+            if isinstance(self.bits, int):
+                assert self.bits < 16
+            else:
+                assert self.bits[0] < 16 and self.bits[1] < 16
+
+        self.from_obj = None
+        self.to_obj = None
 
     def __repr__(self):
         if not self.bits:

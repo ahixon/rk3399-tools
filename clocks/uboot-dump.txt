@@ -1,0 +1,1848 @@
+clk_24m<IO>: 
+lpll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x1
+	postdiv1: 		0x0
+	bypass: 		0x0
+	refdiv: 		0x3
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0xc8
+	fracdiv: 		0x31f
+bpll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x0
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x1
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0x64
+	fracdiv: 		0x31f
+dpll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x1
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x2
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0x6f
+	fracdiv: 		0x31f
+cpll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x1
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x1
+	postdiv2: 		0x2
+	power_down: 		0x0
+	fbdiv: 		0x40
+	fracdiv: 		0x31f
+gpll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x1
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x2
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0x63
+	fracdiv: 		0x31f
+npll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x0
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x3
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0xfa
+	fracdiv: 		0x31f
+vpll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x0
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x2
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0xc6
+	fracdiv: 		0x31f
+ppll: 
+	dsmpd: 		0x1
+	selected_clk_idx: 		0x1
+	postdiv1: 		0x2
+	bypass: 		0x0
+	refdiv: 		0x2
+	postdiv2: 		0x1
+	power_down: 		0x0
+	fbdiv: 		0x70
+	fracdiv: 		0x31f
+upll: 
+|-mux: 
+		m: 			0x0
+clk_32k<IO>: 
+clk_core_l_lpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_l_bpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_l_dpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_l_gpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_l: 
+|-divider: 
+		d: 			0x0
+|-mux: 
+		m: 			0x0
+aclkm_core_l: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+atclk_core_l: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+pclk_dbg_core_l: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+clk_pvtm_core_l: 
+|-gate: 
+		g: 			0x0
+clk_core_b_lpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_b_bpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_b_dpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_b_gpll_src: 
+|-gate: 
+		g: 			0x0
+clk_core_b: 
+|-divider: 
+		d: 			0x1
+|-mux: 
+		m: 			0x1
+aclkm_core_b: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+atclk_core_b: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+pclk_dbg_core_b: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+pclken_dbg_core_b: 
+|-divider: 
+		d: 			0x1
+clk_pvtm_core_b: 
+|-gate: 
+		g: 			0x0
+aclk_gmac_cpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_gmac_gpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_gmac_pre: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+pclk_gmac_pre: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+clk_gmac: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_rmii_src: 
+|-mux: 
+		m: 			0x1
+clk_mac_refout: 
+|-gate: 
+		g: 			0x0
+clk_mac_ref: 
+|-gate: 
+		g: 			0x1
+clk_rmii_rx_src: 
+|-gate: 
+		g: 			0x1
+clk_rmii_d2: 
+|-divider: 
+clk_rmii_d20: 
+|-divider: 
+clk_rmii_tx_src: 
+|-gate: 
+		g: 			0x0
+clk_rmii_d5: 
+|-divider: 
+clk_rmii_d50: 
+|-divider: 
+clk_rmii_rx_mux: 
+|-mux: 
+		m: 			0x1
+clk_rmii_tx_mux: 
+|-mux: 
+		m: 			0x1
+clk_mac_rx: 
+|-mux: 
+		m: 			0x0
+clk_mac_tx: 
+|-mux: 
+		m: 			0x0
+clkin_gmac<IO>: 
+gmac_phy_rx_clk<IO>: 
+clk_i2s0_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2s0_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_i2s0_mux: 
+|-mux: 
+		m: 			0x1
+clk_i2s0: 
+|-gate: 
+		g: 			0x0
+clk_i2s1_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2s1_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_i2s1_mux: 
+|-mux: 
+		m: 			0x1
+clk_i2s1: 
+|-gate: 
+		g: 			0x0
+clk_i2s2_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2s2_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_i2s2_mux: 
+|-mux: 
+		m: 			0x1
+clk_i2s2: 
+|-gate: 
+		g: 			0x0
+clk_i2sout_src: 
+|-mux: 
+		m: 			0x0
+clk_i2sout: 
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_12m: 
+|-divider: 
+clkin_i2s<IO>: 
+clk_spdif_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_spdif_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_spdif: 
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_spdif_rec_dptx: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_uart0_src: 
+|-mux: 
+		m: 			0x0
+clk_uart_src: 
+|-mux: 
+		m: 			0x0
+clk_uart0_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+clk_uart0_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_uart0: 
+|-mux: 
+		m: 			0x0
+clk_uart1_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+clk_uart1_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_uart1: 
+|-mux: 
+		m: 			0x0
+clk_uart2_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+clk_uart2_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_uart2: 
+|-mux: 
+		m: 			0x0
+clk_uart3_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+clk_uart3_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_uart3: 
+|-mux: 
+		m: 			0x0
+clk_ddrc_lpll_src: 
+|-gate: 
+		g: 			0x0
+clk_ddrc_bpll_src: 
+|-gate: 
+		g: 			0x0
+clk_ddrc_dpll_src: 
+|-gate: 
+		g: 			0x0
+clk_ddrc_gpll_src: 
+|-gate: 
+		g: 			0x0
+clk_ddrc: 
+|-divider: 
+		d: 			0x0
+|-mux: 
+		m: 			0x0
+clk_ddrc_div2: 
+|-divider: 
+pclk_ddr: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_pvtm_ddr: 
+|-gate: 
+		g: 			0x0
+clk_dfimon0_timer: 
+|-gate: 
+		g: 			0x0
+clk_dfimon1_timer: 
+|-gate: 
+		g: 			0x0
+aclk_cci_cpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_cci_gpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_cci_npll_src: 
+|-gate: 
+		g: 			0x0
+aclk_cci_vpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_cci_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_cci_trace_cpll_src: 
+|-gate: 
+		g: 			0x0
+clk_cci_trace_gpll_src: 
+|-gate: 
+		g: 			0x0
+clk_cci_trace: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_cs_cpll_src: 
+|-gate: 
+		g: 			0x0
+clk_cs_gpll_src: 
+|-gate: 
+		g: 			0x0
+clk_cs_npll_src: 
+|-gate: 
+		g: 			0x0
+clk_cs: 
+|-divider: 
+		d: 			0x3
+|-mux: 
+		m: 			0x1
+aclk_vcodec_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_vcodec_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+aclk_vdu_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_vdu_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+clk_vdu_core: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_vdu_ca: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+aclk_iep_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_iep_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+aclk_rga_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_rga_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+clk_rga_core: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+aclk_center: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+aclk_gpu_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x3
+clk_pvtm_gpu: 
+|-gate: 
+		g: 			0x0
+aclk_perihp_cpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_perihp_gpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_perihp: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+hclk_perihp: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+pclk_perihp: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+clk_usbphy0_480m<PHY>: 
+clk_usbphy1_480m<PHY>: 
+clk_usbphy_480m: 
+|-mux: 
+		m: 			0x0
+clk_hsicphy: 
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_sdio: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_sdmmc: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_pcie_pm: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x3
+clk_pciephy_ref100m: 
+|-divider: 
+		d: 			0x9
+|-gate: 
+		g: 			0x0
+clk_pciephy_ref: 
+|-mux: 
+		m: 			0x0
+clk_pcie_core_cru: 
+|-divider: 
+		d: 			0x7
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_pcie_core_phy<PHY>: 
+clk_pcie_core: 
+|-mux: 
+		m: 			0x1
+aclk_emmc_cpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_emmc_gpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_emmc: 
+|-divider: 
+		d: 			0x2
+|-mux: 
+		m: 			0x1
+clk_emmc: 
+|-divider: 
+		d: 			0x2
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+aclk_perilp0_cpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_perilp0_gpll_src: 
+|-gate: 
+		g: 			0x0
+aclk_perilp0: 
+|-divider: 
+		d: 			0x5
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+hclk_perilp0: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+pclk_perilp0: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+clk_crypto0: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_crypto1: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+fclk_cm0s_cpll_src: 
+|-gate: 
+		g: 			0x0
+fclk_cm0s_gpll_src: 
+|-gate: 
+		g: 			0x0
+fclk_cm0s: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+hclk_perilp1_cpll_src: 
+|-gate: 
+		g: 			0x0
+hclk_perilp1_gpll_src: 
+|-gate: 
+		g: 			0x0
+hclk_perilp1: 
+|-divider: 
+		d: 			0x5
+|-mux: 
+		m: 			0x1
+pclk_perilp1: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+clk_saradc: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+clk_tsadc: 
+|-divider: 
+		d: 			0xdc
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_testout2_2io: 
+|-mux: 
+		m: 			0x0
+clk_testout1_pll_src: 
+|-mux: 
+		m: 			0x0
+clk_testout1: 
+|-divider: 
+		d: 			0xf
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_testout2_pll_src: 
+|-mux: 
+		m: 			0x0
+clk_testout2: 
+|-divider: 
+		d: 			0xf
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+aclk_usb3: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_usb3otg0_ref: 
+|-gate: 
+		g: 			0x0
+clk_usb3otg1_ref: 
+|-gate: 
+		g: 			0x0
+clk_usb3otg0_suspend: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_usb3otg1_suspend: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_uphy0_tcpdphy_ref: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_uphy0_tcpdcore: 
+|-divider: 
+		d: 			0x5
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_uphy1_tcpdphy_ref: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_uphy1_tcpdcore: 
+|-divider: 
+		d: 			0x5
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+aclk_vio: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+pclk_vio: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+aclk_hdcp: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_hdcp: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+pclk_hdcp: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+pclk_edp: 
+|-divider: 
+		d: 			0x7
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_hdmi_cec: 
+|-divider: 
+		d: 			0xdc
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_hdmi_sfr: 
+|-gate: 
+		g: 			0x0
+clk_dp_core: 
+|-divider: 
+		d: 			0x4
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+aclk_vop0_pre: 
+|-divider: 
+		d: 			0x2
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_vop0_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+aclk_vop1_pre: 
+|-divider: 
+		d: 			0x2
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_vop1_pre: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+dclk_vop0_div: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+dclk_vop0_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+dclk_vop0: 
+|-mux: 
+		m: 			0x0
+dclk_vop1_div: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+dclk_vop1_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+dclk_vop1: 
+|-mux: 
+		m: 			0x0
+clk_vop0_pwm: 
+|-divider: 
+		d: 			0x5
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_vop1_pwm: 
+|-divider: 
+		d: 			0x5
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+aclk_isp0: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_isp0: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+clk_isp0: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+aclk_isp1: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+hclk_isp1: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+clk_isp1: 
+|-divider: 
+		d: 			0x1
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_cifout_pll_src: 
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_cifout: 
+|-divider: 
+		d: 			0x3
+|-mux: 
+		m: 			0x1
+aclk_gic_pre: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+pclk_alive_gpll_src: 
+|-gate: 
+		g: 			0x0
+pclk_alive: 
+|-divider: 
+		d: 			0x5
+clk_test: 
+|-divider: 
+		d: 			0xf
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_test_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_test_24m: 
+|-divider: 
+		d: 			0x0
+clk_spi0: 
+|-divider: 
+		d: 			0x7
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_spi1: 
+|-divider: 
+		d: 			0xf
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+clk_spi2: 
+|-divider: 
+		d: 			0x7
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_spi4: 
+|-divider: 
+		d: 			0x7
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_spi5: 
+|-divider: 
+		d: 			0x7
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2c1: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2c5: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2c2: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2c6: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2c3: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_i2c7: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_mipidphy_ref: 
+|-gate: 
+		g: 			0x0
+clk_mipidphy_cfg: 
+|-gate: 
+		g: 			0x0
+clk_usb2phy0_ref: 
+|-gate: 
+		g: 			0x0
+clk_usb2phy1_ref: 
+|-gate: 
+		g: 			0x0
+hclk_sd: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_usbphy0_480m_src: 
+|-gate: 
+		g: 			0x0
+clk_usbphy1_480m_src: 
+|-gate: 
+		g: 			0x0
+clk_timer0: 
+|-gate: 
+		g: 			0x0
+clk_timer1: 
+|-gate: 
+		g: 			0x0
+clk_timer2: 
+|-gate: 
+		g: 			0x0
+clk_timer3: 
+|-gate: 
+		g: 			0x0
+clk_timer4: 
+|-gate: 
+		g: 			0x0
+clk_timer5: 
+|-gate: 
+		g: 			0x0
+clk_timer6: 
+|-gate: 
+		g: 			0x0
+clk_timer7: 
+|-gate: 
+		g: 			0x0
+clk_timer8: 
+|-gate: 
+		g: 			0x0
+clk_timer9: 
+|-gate: 
+		g: 			0x0
+clk_timer10: 
+|-gate: 
+		g: 			0x0
+clk_timer11: 
+|-gate: 
+		g: 			0x0
+pclkin_cif<IO>: 
+pclkin_cifinv: 
+pclkin_cifmux: 
+|-mux: 
+		m: 			0x1
+clk_dbg_pd_core_b: 
+|-gate: 
+		g: 			0x0
+pclk_dbg_cxcs_pd_core_b: 
+|-gate: 
+		g: 			0x0
+aclk_core_adb400_gic_2_core_b: 
+|-gate: 
+		g: 			0x0
+aclk_core_adb400_core_b_2_gic: 
+|-gate: 
+		g: 			0x0
+aclk_core_adb400_core_b_2_cci500: 
+|-gate: 
+		g: 			0x0
+aclk_perf_core_b: 
+|-gate: 
+		g: 			0x0
+clk_dbg_pd_core_l: 
+|-gate: 
+		g: 			0x0
+aclk_core_adb400_gic_2_core_l: 
+|-gate: 
+		g: 			0x0
+aclk_core_adb400_core_l_2_gic: 
+|-gate: 
+		g: 			0x0
+aclk_core_adb400_core_l_2_cci500: 
+|-gate: 
+		g: 			0x0
+aclk_perf_core_l: 
+|-gate: 
+		g: 			0x0
+aclk_adb400m_pd_core_l: 
+|-gate: 
+		g: 			0x0
+aclk_adb400m_pd_core_b: 
+|-gate: 
+		g: 			0x0
+aclk_cci: 
+|-gate: 
+		g: 			0x0
+aclk_cci_noc0: 
+|-gate: 
+		g: 			0x0
+aclk_cci_noc1: 
+|-gate: 
+		g: 			0x0
+clk_dbg_cxcs: 
+|-gate: 
+		g: 			0x0
+clk_dbg_noc: 
+|-gate: 
+		g: 			0x0
+aclk_cci_grf: 
+|-gate: 
+		g: 			0x0
+aclk_iep: 
+|-gate: 
+		g: 			0x0
+aclk_iep_noc: 
+|-gate: 
+		g: 			0x0
+hclk_iep: 
+|-gate: 
+		g: 			0x0
+hclk_iep_noc: 
+|-gate: 
+		g: 			0x0
+aclk_rga: 
+|-gate: 
+		g: 			0x0
+aclk_rga_noc: 
+|-gate: 
+		g: 			0x0
+hclk_rga: 
+|-gate: 
+		g: 			0x0
+hclk_rga_noc: 
+|-gate: 
+		g: 			0x0
+aclk_vcodec: 
+|-gate: 
+		g: 			0x0
+aclk_vcodec_noc: 
+|-gate: 
+		g: 			0x0
+hclk_vcodec: 
+|-gate: 
+		g: 			0x0
+hclk_vcodec_noc: 
+|-gate: 
+		g: 			0x0
+aclk_vdu: 
+|-gate: 
+		g: 			0x0
+aclk_vdu_noc: 
+|-gate: 
+		g: 			0x0
+hclk_vdu: 
+|-gate: 
+		g: 			0x0
+hclk_vdu_noc: 
+|-gate: 
+		g: 			0x0
+clk_ddr0_msch: 
+|-gate: 
+		g: 			0x0
+clk_ddrc0: 
+|-gate: 
+		g: 			0x0
+clk_ddrphy_ctrl0: 
+|-gate: 
+		g: 			0x0
+clk_ddrphy0: 
+|-gate: 
+		g: 			0x0
+clk_ddrcfg_msch0: 
+|-gate: 
+		g: 			0x0
+clk_ddr1_msch: 
+|-gate: 
+		g: 			0x0
+clk_ddrc1: 
+|-gate: 
+		g: 			0x0
+clk_ddrphy_ctrl1: 
+|-gate: 
+		g: 			0x0
+clk_ddrphy1: 
+|-gate: 
+		g: 			0x0
+clk_ddrcfg_msch1: 
+|-gate: 
+		g: 			0x0
+pclk_center_main_noc: 
+|-gate: 
+		g: 			0x0
+clk_ddr_cic: 
+|-gate: 
+		g: 			0x0
+pclk_ddr_mon: 
+|-gate: 
+		g: 			0x0
+clk_ddr_mon: 
+|-gate: 
+		g: 			0x0
+clk_ddr_mon_timer: 
+|-gate: 
+		g: 			0x0
+pclk_cic: 
+|-gate: 
+		g: 			0x0
+aclk_center_main_noc: 
+|-gate: 
+		g: 			0x0
+aclk_center_peri_noc: 
+|-gate: 
+		g: 			0x0
+pclk_ddr_sgrf: 
+|-gate: 
+		g: 			0x0
+aclk_perf_pcie: 
+|-gate: 
+		g: 			0x0
+pclk_perihp_grf: 
+|-gate: 
+		g: 			0x0
+hclk_host0: 
+|-gate: 
+		g: 			0x0
+hclk_host0_arb: 
+|-gate: 
+		g: 			0x0
+hclk_host1: 
+|-gate: 
+		g: 			0x0
+hclk_host1_arb: 
+|-gate: 
+		g: 			0x0
+hclk_hsic: 
+|-gate: 
+		g: 			0x0
+aclk_pcie: 
+|-gate: 
+		g: 			0x0
+pclk_pcie: 
+|-gate: 
+		g: 			0x0
+aclk_perihp_noc: 
+|-gate: 
+		g: 			0x0
+hclk_perihp_noc: 
+|-gate: 
+		g: 			0x0
+pclk_perihp_noc: 
+|-gate: 
+		g: 			0x0
+hclk_ahb1tom: 
+|-gate: 
+		g: 			0x0
+clk_dphy_pll: 
+|-gate: 
+		g: 			0x0
+clk_dphy_tx0_cfg: 
+|-gate: 
+		g: 			0x0
+clk_dphy_tx1rx1_cfg: 
+|-gate: 
+		g: 			0x0
+clk_dphy_rx0_cfg: 
+|-gate: 
+		g: 			0x0
+pclk_uphy_mux_g: 
+|-gate: 
+		g: 			0x0
+pclk_uphy0_tcphy_g: 
+|-gate: 
+		g: 			0x0
+pclk_uphy0_tcpd_g: 
+|-gate: 
+		g: 			0x0
+pclk_uphy1_tcphy_g: 
+|-gate: 
+		g: 			0x0
+pclk_uphy1_tcpd_g: 
+|-gate: 
+		g: 			0x0
+pclk_uart0: 
+|-gate: 
+		g: 			0x0
+pclk_uart1: 
+|-gate: 
+		g: 			0x0
+pclk_uart2: 
+|-gate: 
+		g: 			0x0
+pclk_uart3: 
+|-gate: 
+		g: 			0x0
+pclk_rki2c7: 
+|-gate: 
+		g: 			0x0
+pclk_rki2c1: 
+|-gate: 
+		g: 			0x0
+pclk_rki2c5: 
+|-gate: 
+		g: 			0x0
+pclk_rki2c6: 
+|-gate: 
+		g: 			0x0
+pclk_rki2c2: 
+|-gate: 
+		g: 			0x0
+pclk_rki2c3: 
+|-gate: 
+		g: 			0x0
+pclk_mailbox0: 
+|-gate: 
+		g: 			0x0
+pclk_saradc: 
+|-gate: 
+		g: 			0x0
+pclk_tsadc: 
+|-gate: 
+		g: 			0x0
+pclk_efuse1024ns: 
+|-gate: 
+		g: 			0x0
+pclk_efuse1024s: 
+|-gate: 
+		g: 			0x0
+aclk_intmem: 
+|-gate: 
+		g: 			0x0
+aclk_tzma: 
+|-gate: 
+		g: 			0x0
+clk_intmem0: 
+|-gate: 
+		g: 			0x0
+clk_intmem1: 
+|-gate: 
+		g: 			0x0
+clk_intmem2: 
+|-gate: 
+		g: 			0x0
+clk_intmem3: 
+|-gate: 
+		g: 			0x0
+clk_intmem4: 
+|-gate: 
+		g: 			0x0
+clk_intmem5: 
+|-gate: 
+		g: 			0x0
+aclk_dcf: 
+|-gate: 
+		g: 			0x0
+pclk_dcf: 
+|-gate: 
+		g: 			0x0
+pclk_spi0: 
+|-gate: 
+		g: 			0x0
+pclk_spi1: 
+|-gate: 
+		g: 			0x0
+pclk_spi2: 
+|-gate: 
+		g: 			0x0
+pclk_spi4: 
+|-gate: 
+		g: 			0x0
+hclk_rom: 
+|-gate: 
+		g: 			0x0
+hclk_m_crypto0: 
+|-gate: 
+		g: 			0x0
+hclk_s_crypto0: 
+|-gate: 
+		g: 			0x0
+sclk_m0_perilp: 
+|-gate: 
+		g: 			0x0
+hclk_m0_perilp: 
+|-gate: 
+		g: 			0x0
+dclk_m0_perilp: 
+|-gate: 
+		g: 			0x0
+clk_m0_perilp_dec: 
+|-gate: 
+		g: 			0x0
+pclk_perilp_sgrf: 
+|-gate: 
+		g: 			0x0
+hclk_m_crypto1: 
+|-gate: 
+		g: 			0x0
+hclk_s_crypto1: 
+|-gate: 
+		g: 			0x0
+aclk_dmac0_perilp: 
+|-gate: 
+		g: 			0x0
+aclk_dmac1_perilp: 
+|-gate: 
+		g: 			0x0
+aclk_perilp0_noc: 
+|-gate: 
+		g: 			0x0
+hclk_perilp0_noc: 
+|-gate: 
+		g: 			0x0
+hclk_perilp1_noc: 
+|-gate: 
+		g: 			0x0
+pclk_perilp1_noc: 
+|-gate: 
+		g: 			0x0
+hclk_m0_perilp_noc: 
+|-gate: 
+		g: 			0x0
+hclk_sdio_noc: 
+|-gate: 
+		g: 			0x0
+hclk_isp0_noc: 
+|-gate: 
+		g: 			0x0
+aclk_isp0_noc: 
+|-gate: 
+		g: 			0x0
+hclk_isp1_noc: 
+|-gate: 
+		g: 			0x0
+aclk_isp1_noc: 
+|-gate: 
+		g: 			0x0
+hclk_isp0_wrapper: 
+|-gate: 
+		g: 			0x0
+aclk_isp0_wrapper: 
+|-gate: 
+		g: 			0x0
+pclkin_isp1_wrapper: 
+|-gate: 
+		g: 			0x0
+hclk_isp1_wrapper: 
+|-gate: 
+		g: 			0x0
+aclk_isp1_wrapper: 
+|-gate: 
+		g: 			0x0
+hclk_vop0_noc: 
+|-gate: 
+		g: 			0x0
+aclk_vop0_noc: 
+|-gate: 
+		g: 			0x0
+hclk_vop0: 
+|-gate: 
+		g: 			0x0
+aclk_vop0: 
+|-gate: 
+		g: 			0x0
+hclk_vop1_noc: 
+|-gate: 
+		g: 			0x0
+aclk_vop1_noc: 
+|-gate: 
+		g: 			0x0
+hclk_vop1: 
+|-gate: 
+		g: 			0x0
+aclk_vop1: 
+|-gate: 
+		g: 			0x0
+aclk_vio_noc: 
+|-gate: 
+		g: 			0x0
+pclk_mipi_dsi0: 
+|-gate: 
+		g: 			0x0
+pclk_mipi_dsi1: 
+|-gate: 
+		g: 			0x0
+pclk_hdcp_noc: 
+|-gate: 
+		g: 			0x0
+aclk_hdcp_noc: 
+|-gate: 
+		g: 			0x0
+hclk_hdcp_noc: 
+|-gate: 
+		g: 			0x0
+pclk_hdmi_ctrl: 
+|-gate: 
+		g: 			0x0
+pclk_dp_ctrl: 
+|-gate: 
+		g: 			0x0
+pclk_hdcp22: 
+|-gate: 
+		g: 			0x0
+hclk_hdcp22: 
+|-gate: 
+		g: 			0x0
+aclk_hdcp22: 
+|-gate: 
+		g: 			0x0
+pclk_gasket: 
+|-gate: 
+		g: 			0x0
+pclk_vio_grf: 
+|-gate: 
+		g: 			0x0
+aclk_usb3_noc: 
+|-gate: 
+		g: 			0x0
+aclk_usb3otg0: 
+|-gate: 
+		g: 			0x0
+aclk_usb3otg1: 
+|-gate: 
+		g: 			0x0
+aclk_usb3_rksoc_axi_perf: 
+|-gate: 
+		g: 			0x0
+aclk_usb3_grf: 
+|-gate: 
+		g: 			0x0
+aclk_gpu: 
+|-gate: 
+		g: 			0x0
+aclk_perf_gpu: 
+|-gate: 
+		g: 			0x0
+aclk_gpu_grf: 
+|-gate: 
+		g: 			0x0
+pclk_grf: 
+|-gate: 
+		g: 			0x0
+pclk_intr_arb: 
+|-gate: 
+		g: 			0x0
+pclk_gpio2: 
+|-gate: 
+		g: 			0x0
+pclk_gpio3: 
+|-gate: 
+		g: 			0x0
+pclk_gpio4: 
+|-gate: 
+		g: 			0x0
+pclk_timer0: 
+|-gate: 
+		g: 			0x0
+pclk_timer1: 
+|-gate: 
+		g: 			0x0
+pclk_hsicphy: 
+|-gate: 
+		g: 			0x0
+pclk_pmu_intr_arb: 
+|-gate: 
+		g: 			0x0
+pclk_sgrf: 
+|-gate: 
+		g: 			0x0
+aclk_gmac: 
+|-gate: 
+		g: 			0x0
+aclk_gmac_noc: 
+|-gate: 
+		g: 			0x0
+pclk_gmac: 
+|-gate: 
+		g: 			0x0
+pclk_gmac_noc: 
+|-gate: 
+		g: 			0x0
+aclk_perf_gmac: 
+|-gate: 
+		g: 			0x0
+aclk_emmc_core: 
+|-gate: 
+		g: 			0x0
+aclk_emmc_noc: 
+|-gate: 
+		g: 			0x0
+aclk_emmc_grf: 
+|-gate: 
+		g: 			0x0
+pclk_edp_noc: 
+|-gate: 
+		g: 			0x0
+pclk_edp_ctrl: 
+|-gate: 
+		g: 			0x0
+aclk_gic: 
+|-gate: 
+		g: 			0x0
+aclk_gic_noc: 
+|-gate: 
+		g: 			0x0
+aclk_gic_adb400_core_l_2_gic: 
+|-gate: 
+		g: 			0x0
+aclk_gic_adb400_core_b_2_gic: 
+|-gate: 
+		g: 			0x0
+aclk_gic_adb400_gic_2_core_l: 
+|-gate: 
+		g: 			0x0
+aclk_gic_adb400_gic_2_core_b: 
+|-gate: 
+		g: 			0x0
+hclk_sdmmc: 
+|-gate: 
+		g: 			0x0
+hclk_sdmmc_noc: 
+|-gate: 
+		g: 			0x0
+hclk_i2s0: 
+|-gate: 
+		g: 			0x0
+hclk_i2s1: 
+|-gate: 
+		g: 			0x0
+hclk_i2s2: 
+|-gate: 
+		g: 			0x0
+hclk_spdif: 
+|-gate: 
+		g: 			0x0
+hclk_sdio: 
+|-gate: 
+		g: 			0x0
+pclk_spi5: 
+|-gate: 
+		g: 			0x0
+hclk_sdioaudio_noc: 
+|-gate: 
+		g: 			0x0
+pclk_pmu_src: 
+|-divider: 
+		d: 			0xd
+|-gate: 
+		g: 			0x0
+fclk_cm0s_pmu_ppll_src: 
+|-gate: 
+		g: 			0x0
+fclk_cm0s_pmu: 
+|-gate: 
+		g: 			0x0
+clk_wifi_div: 
+|-divider: 
+		d: 			0x9
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_wifi_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+clk_wifi_pmu: 
+|-mux: 
+		m: 			0x0
+clk_timer_src_pmu: 
+|-mux: 
+		m: 			0x0
+clk_32k_suspend_pmu: 
+|-divider: 
+		d: 			0xdc
+clk_timer0_pmu: 
+|-gate: 
+		g: 			0x0
+clk_timer1_pmu: 
+|-gate: 
+		g: 			0x0
+clk_pvtm_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_pmu: 
+|-gate: 
+		g: 			0x0
+clk_i2c0_pmu: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+clk_i2c4_pmu: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+clk_i2c8_pmu: 
+|-divider: 
+		d: 			0x3
+|-gate: 
+		g: 			0x0
+clk_uart4_div: 
+|-divider: 
+		d: 			0x0
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x0
+clk_uart4_frac: 
+|-frac: 
+		f: 			0xbb8ea60
+|-gate: 
+		g: 			0x0
+clk_uart4_pmu: 
+|-mux: 
+		m: 			0x0
+clk_spi3_pmu: 
+|-divider: 
+		d: 			0x6
+|-gate: 
+		g: 			0x0
+|-mux: 
+		m: 			0x1
+pclk_pmugrf_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_intmem1_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_gpio0_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_gpio1_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_sgrf_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_noc_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_i2c0_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_i2c4_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_i2c8_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_rkpwm_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_spi3_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_timer_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_mailbox_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_uart4_pmu: 
+|-gate: 
+		g: 			0x0
+pclk_wdt_m0_pmu: 
+|-gate: 
+		g: 			0x0
+fclk_cm0s_src_pmu: 
+|-divider: 
+		d: 			0x7
+|-mux: 
+		m: 			0x0
+sclk_cm0s_pmu: 
+|-gate: 
+		g: 			0x0
+hclk_cm0s_pmu: 
+|-gate: 
+		g: 			0x0
+dclk_cm0s_pmu: 
+|-gate: 
+		g: 			0x0
+hclk_noc_pmu: 
+|-gate: 
+		g: 			0x0

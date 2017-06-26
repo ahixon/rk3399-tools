@@ -1,6 +1,7 @@
 from genrust import extract_registers, REGPREFIX_NAME_FIXED
 import json
 from clocks import *
+import re
 
 class ClockManager(object):
     def __init__(self):
@@ -81,7 +82,7 @@ class ClockManager(object):
             if clk_rate is None:
                 print 'WARNING: unknown clock rate for IO clock', clk_name
 
-            clock = FixedClock(clock_info['id'], clk_name, clk_rate)
+            clock = FixedClock(clock_info['id'], clk_name, clock_info['module'], clk_rate)
             self.load_clock(clock, clock_info)
 
         # load all non-IO clocks now
@@ -91,10 +92,12 @@ class ClockManager(object):
 
             if clock_info['module'] == 'PLL':
                 clock = PLL(clock_info['id'], clock_info['clkname'],
+                    clock_info['module'],
                     self.clocks_by_name[self.FIXED_24MHZ_CLKNAME],
                     self.clocks_by_name[self.FIXED_32KHZ_CLKNAME])
             else:
-                clock = Clock(clock_info['id'], clock_info['clkname'])
+                clock = Clock(clock_info['id'], clock_info['clkname'],
+                    clock_info['module'])
 
             self.load_clock(clock, clock_info)
 
@@ -110,33 +113,116 @@ class ClockManager(object):
 
                 clock.mux = Mux(mux_reg, clock, clock.parents)
 
+    def gen_dump_regs(self, clock, dumpname, reg, level):
+        indent = '    '
+        print_indent = '\\t' * level
+        print_indent_val = '\\t' * (level + 1)
 
-    def gen_dumper(self, crate="rk3399_ap"):
+        r = ''
+
+        r += indent + 'print!("%s%s: ");\n' % (print_indent, dumpname)
+
+        if isinstance(reg, list):
+            rust_expr = '|'.join (map (lambda x: x.rust_expr(), reg))
+
+            rust_access = 'println!("%s0x{:x}", %s);' % (print_indent_val, rust_expr)
+        else:
+            rust_access = 'println!("%s0x{:x}", %s);' % (print_indent_val, reg.rust_expr())
+
+        r += indent + rust_access + '\n'
+
+        return r
+
+    def gen_dumper(self, crate="rk3399_tools"):
         r = """extern crate %s;
 
-pub fn print_clocks() {""" % crate
+pub fn print_clocks() {
+""" % crate
 
         for peripheral in self.RUST_PERIPHERALS:
             r += '    let %s = unsafe { &*%s::%s.get() };\n' % (
-                crate, peripheral, peripheral.upper())
+                peripheral, crate, peripheral.upper())
+
+        r += '\n'
 
         for clock in self.clocks.values():
             r += '    println!("%s: ");\n' % clock.name
 
-            for reg in clock.registers:
-                r += '    print!("\\t%s: ");\n' % t
+            for reg in clock.register_map:
+                r += self.gen_dump_regs(clock, reg, clock.register_map[reg], 1)
 
-                accesses = clk[t]
-                if not accesses:
-                    continue
+            # and children
+            for child in clock.register_children:
+                r += '    println!("|-%s: ");\n' % child
 
-                rust_expr = '|'.join (map (lambda x: x.rust_expr(), accesses))
+                child_obj = clock.__dict__[child]
+                if isinstance(child_obj, list):
+                    # FIXME: handle multiple gates
+                    # for now we just take the first one
+                    if len(child_obj) > 1:
+                        print 'WARNING: only using one gate from', clock
 
-                rust_access = 'println!("0x{:x}", %s);' % rust_expr
+                    child_obj = child_obj[0]
+                
+                for reg in child_obj.register_map:
+                    r += self.gen_dump_regs(clock, reg, child_obj.register_map[reg], 2)
 
-                print rust_access
+        r += '}\n'
 
-        print '}'
+        return r
+
+    def set_val_in_regmap(self, current_clk, regmap_name, val):
+        if current_clk.register_map[regmap_name].to_obj:
+            current_clk.register_map[regmap_name].to_obj(val)
+        else:
+            # just direct set on object in class; doesn't have a deserialisation function
+            current_clk.__dict__[regmap_name] = val
+
+    def load_dump(self, f):
+        current_clk_name = None
+        current_clk = None
+
+        current_child = None
+
+        for line in f:
+            m = re.match(r'([\w<>]+):', line)
+            if m:
+                current_clk_name = m.group(1)
+                current_clk = self.clocks_by_name[current_clk_name]
+                continue
+            
+            m = re.match(r'\t(\w+):\s*\t\t0x([a-z0-9]+)', line)
+            if m:
+                # direct clock register
+                regmap_name, strval = m.groups()
+                val = int(strval, 16)
+
+                self.set_val_in_regmap (current_clk, regmap_name, val)
+                continue
+
+            m = re.match(r'\|-(\w+):', line)
+            if m:
+                # register child
+                current_child = current_clk.__dict__[m.group(1)]
+                if isinstance(current_child, list):
+                    # FIXME: handle non- first child
+                    current_child = current_child[0]
+
+                continue
+
+            m = re.match(r'\t\t(\w+):\s*\t\t0x([a-z0-9]+)', line)
+            if m:
+                # register child's register
+                regmap_name, strval = m.groups()
+                val = int(strval, 16)
+
+                self.set_val_in_regmap (current_child, regmap_name, val)
+                continue
+
+            # unhandled format
+            print line
+            assert False
+
 
 def main():
     cm = ClockManager()
@@ -145,25 +231,16 @@ def main():
     with open('data/clocks.json', 'r') as f:
         cm.load(json.load(f))
 
-    # setup some clocks
+    # write dumper
+    with open('clocks.rs', 'w') as f:
+        f.write(cm.gen_dumper())
 
-    cm.clocks[1].select(1)
+    # load clock dump data
+    with open('uboot-dump.txt', 'r') as f:
+        cm.load_dump(f)
 
-    cm.clocks[1].dsmpd = 0
-    cm.clocks[1].refdiv = 1
-    cm.clocks[1].fbdiv = 20
-    cm.clocks[1].frac = 4
-    cm.clocks[1].postdiv1 = 1
-    cm.clocks[1].postdiv2 = 300
-
-    cm.clocks[85].gate[0].clocking_enabled = True
-    cm.clocks[89].mux.select(0)
-    c = cm.clocks[90]
-    print 'clock:', c
-    print 'divider:', c.divider
-    print 'rate:', c.clk
-
-    print cm.gen_dumper()
+    # print out uart2 clock speed
+    print cm.clocks_by_name['clk_uart2'].clk
 
 if __name__ == '__main__':
     main()
