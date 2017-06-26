@@ -1,0 +1,8 @@
+[package]
+name = "rk3399-tools"
+version = "0.1.0"
+authors = ["Alex Hixon <alex@alexhixon.com>"]
+
+[dependencies]
+cortex-m = "0.2.5"
+vcell = "0.1.0"

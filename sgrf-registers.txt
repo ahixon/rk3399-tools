@@ -1,0 +1,161 @@
+SGRF Registers
+
+See also: System Security manual section
+But there are no bit mappings.
+We might be able to get more information from other 33xx devices.
+
+Would assume top 16 bits of all these registers are write-enable bits.
+
+sgrf_perilp_m0_con0[5]: Reset hold control, 0: reset can be asserted; 1: reset cannot be asserted, so M0 RESETn will be high
+sgrf_perilp_m0_con0[1]: serial wire debug enable, 0: disable; 1: enable
+
+SGRF_SOC_CON0[3] - CA53 JTAG
+SGRF_SOC_CON0[4] - CA53 JTAG
+SGRF_SOC_CON0[5] - CA53 JTAG
+SGRF_SOC_CON0[6] - CA53 JTAG
+SGRF_SOC_CON0[13]: always 0
+SGRF_SOC_CON0[14]: enable (ie write 1) for SYSRESETREQ on perilpm0
+
+sgrf_soc_con6[13]: PERILPM0 Security attribute; 0: enable, 1: disable
+
+split over 2 registers:
+	sgrf_perilp_m0_con2[9:0] AND sgrf_perilp_m0_con1[15:0]
+
+	[25]: NOREF. Indicates that no alternative
+	reference clock source has been integrated. Tie
+	HIGH if STCLKEN has been tied off.
+	[24]: SKEW. Tie this LOW if the system timer
+	clock, the external reference clock, or SCLK as
+	indicated by STCALIB[25], can guarantee an
+	exact multiple of 10ms. Otherwise, tie this
+	signal HIGH.
+	[23:0]: TENMS. Provides an integer value to
+	compute a 10ms (100Hz) delay from either the
+	reference clock, or SCLK if the reference clock is
+	not implemented.
+
+sgrf_perilp_m0_con8[7:0] - Minimum number of cycles between an
+interrupt that becomes pended in the NVIC, and
+the vector fetch for that interrupt being issued
+
+sgrf_perilp_m0_con0[0] - Non maskable interrupt
+sgrf_perilp_m0_con0[2] - External restart request
+sgrf_perilp_m0_con0[3] - External debug request
+sgrf_perilp_m0_con0[4] - A HIGH level on this input causes the
+architecture defined Event Register to be set in
+the Cortex-M0 processor. This causes a WFE
+instruction to complete. It also awakens the
+processor if it is sleeping as the result of
+encountering a WFE instruction when the Event
+Register is clear.
+
+split over 2 registers:
+	sgrf_pmu_con2[9:0] AND sgrf_pmu_con1[15:0]
+
+	[25]: NOREF.Indicates that no alternative
+	reference clock source has been integrated. Tie
+	HIGH if STCLKEN has been tied off.
+	[24]: SKEW. Tie this LOW if the system timer
+	clock, the external reference clock, or SCLK as
+	indicated by STCALIB[25], can guarantee an
+	exact multiple of 10ms. Otherwise, tie this
+	signal HIGH.
+	[23:0]: TENMS. Provides an integer value to
+	compute a 10ms (100Hz) delay from either the
+	reference clock, or SCLK if the reference clock is
+	not implemented.
+
+sgrf_pmu_con8[7:0] - Minimum number of cycles between an
+interrupt that becomes pended in the NVIC, and
+the vector fetch for that interrupt being issued
+
+sgrf_pmu_con0[0] - Non maskable interrupt
+sgrf_pmu_con0[1] - Internal PMU; 0: disable, 1: enable
+sgrf_pmu_con0[2] - External restart request
+sgrf_pmu_con0[3] - External debug request
+sgrf_pmu_con0[4] - A HIGH level on this input causes the
+architecture defined Event Register to be set in
+the Cortex-M0 processor. This causes a WFE
+instruction to complete. It also awakens the
+processor if it is sleeping as the result of
+encountering a WFE instruction when the Event
+Register is clear.
+
+sgrf_pmu_con0[5] - serial wire debug enable, 0: disable; 1: enable
+sgrf_pmu_con0[6] - Reset hold control, 0: reset can be asserted; 1: reset cannot be asserted, so M0 RESETn will be high
+sgrf_pmu_con0[7] - Master security attribute; 0: secure, 1: no-secure
+
+SGRF_SOC_CON1[31:16] are CPU_BOOT_ADDR (cluster 1?)
+SGRF_SOC_CON2[31:16] are CPU_BOOT_ADDR (cluster 2?)
+
+SGRF_SOC_CON3[2] is pmusram (SRAM1) secure?
+SGRF_SOC_CON3[6] is stimer secure
+SGRF_SOC_CON3[8]: ca53 wdt pclk, 0: enable 1: disable
+SGRF_SOC_CON3[10]: cm0 wdt pclk, 0: enable 1: disable
+
+SGRF_SOC_CON4[9:0] - TZMA (trustzone memory adapter), p990
+
+SGRF_SOC_CON6[12]: some sort of security for PMU M0???????????????; 0: enable, 1: disable
+	// alternatively this a typo and the code was meant to turn off security for PERILPM0
+	// and had 12 rather than 13.. which is possible
+
+SGRF_SOC_CON5, 6, 7 can have 0xffff written (SGRF_SOC_ALLMST_NS - "all of master in non-secure")
+
+dmac0 security (0 is secure, 1 is non-secure)
+top 16 bits are write enable bits, bottom are ???
+SGRF_SOC_CON8
+SGRF_SOC_CON9
+SGRF_SOC_CON10
+(need to soft-reset DMAC by writing to CRU_SOFTRST_CON10 if you change these)
+
+dmac1 security
+SGRF_SOC_CON11
+SGRF_SOC_CON12
+SGRF_SOC_CON13
+SGRF_SOC_CON14
+SGRF_SOC_CON15
+
+sgrf_perilp_m0_con3[15:0] - middle 16 bits of 0x00000000-0x1FFFFFFF remap
+sgrf_perilp_m0_con4[15:0] - middle 16 bits of 0x20000000-0x3FFFFFFF remap
+sgrf_perilp_m0_con5[15:0] - middle 16 bits of 0x80000000-0x9FFFFFFF remap
+sgrf_perilp_m0_con5[15:0] - middle 16 bits of 0x60000000-0x7FFFFFFF remap
+sgrf_perilp_m0_con6[15:0] - middle 16 bits of 0xA0000000-0xDFFFFFFF remap
+
+sgrf_perilp_m0_con7[3:0] - top 4 bits of 0x00000000-0x1FFFFFFF remap
+sgrf_perilp_m0_con7[7:4] - top 4 bits of 0x20000000-0x3FFFFFFF remap
+sgrf_perilp_m0_con7[11:8] - top 4 bits of 0x60000000-0x7FFFFFFF remap
+sgrf_perilp_m0_con7[11:8] - top 4 bits of 0x80000000-0x9FFFFFFF remap
+sgrf_perilp_m0_con7[15:12] - top 4 bits of 0xA0000000-0xDFFFFFFF remap
+
+sgrf_pmu_con3[15:0] - middle 16 bits of 0x00000000-0x1FFFFFFF remap
+sgrf_pmu_con4[15:0] - middle 16 bits of 0x20000000-0x3FFFFFFF remap
+sgrf_pmu_con5[15:0] - middle 16 bits of 0x80000000-0x9FFFFFFF remap
+sgrf_pmu_con5[15:0] - middle 16 bits of 0x60000000-0x7FFFFFFF remap
+sgrf_pmu_con6[15:0] - middle 16 bits of 0xA0000000-0xDFFFFFFF remap
+
+sgrf_pmu_con7[3:0] - top 4 bits of 0x00000000-0x1FFFFFFF remap
+sgrf_pmu_con7[7:4] - top 4 bits of 0x20000000-0x3FFFFFFF remap
+sgrf_pmu_con7[11:8] - top 4 bits of 0x80000000-0x9FFFFFFF remap
+sgrf_pmu_con7[11:8] - top 4 bits of 0x60000000-0x7FFFFFFF remap
+sgrf_pmu_con7[15:12] - top 4 bits of 0xA0000000-0xDFFFFFFF remap
+
+
+# HDCP
+## PDFK
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(24), 0xFFFFeeff);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(25), 0xFFFFccdd);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(26), 0xFFFFaabb);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(27), 0xFFFF8899);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(28), 0xFFFF6677);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(29), 0xFFFF4455);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(30), 0xFFFF2233);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(31), 0xFFFF0011);
+## DUK
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(32), 0xFFFF1100);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(33), 0xFFFF3322);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(34), 0xFFFF5544);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(35), 0xFFFF7766);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(36), 0xFFFF9988);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(37), 0xFFFFbbaa);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(38), 0xFFFFddcc);
++	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(39), 0xFFFFeeff);

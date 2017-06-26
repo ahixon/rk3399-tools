@@ -1,0 +1,599 @@
+<!doctype html>
+<html>
+<head>
+  <title>RK3399 Clock Viewer</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+      width: 800px;
+      height: 500px;
+      border: 1px solid lightgray;
+    }
+
+    #panels {
+      display: flex;
+    }
+
+    .panel {
+      padding: 12px;
+    }
+
+    #searchlist, #enabledlist {
+      width: 210px;
+    }
+  </style>
+
+  <script type="text/javascript" src="vis.js"></script>
+  <!-- <link href="vis-network.min.css" rel="stylesheet" type="text/css" /> -->
+
+  <script type="text/javascript">
+    var network = null;
+    var layoutMethod = "hubsize";
+
+    function loadJSON(path, success, error) {
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            success(JSON.parse(xhr.responseText));
+          }
+          else {
+            error(xhr);
+          }
+        }
+      };
+      xhr.open('GET', path, true);
+      xhr.send();
+    }
+
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
+    function disableNode(nodeid, force) {
+      var node = document.allNodes[nodeid];
+
+      if (node.gate == null) {
+        // disable all gates coming out of the mux or divider
+        var connected = getNodesOut(nodeid);
+        var children = [];
+        for (var i = 0; i < connected.length; i++) {
+          children = children.concat (disableNode(connected[i], false));
+        }
+
+        return children;
+      }
+
+      if (force) {
+        node.gateEnabledByUser = false;
+      }
+
+      node.gateEnabled = false;
+
+      node.color = 'rgba(200,200,200,0.5)';
+      // node.hiddenLabel = node.label;
+      // node.label = undefined;
+      return [node];
+    }
+
+    function enableNode(nodeid, force) {
+      var node = document.allNodes[nodeid];
+
+      if (node.gate == null) {
+        // enable all gates coming out of the mux or divider
+        var connected = getNodesOut(nodeid);
+        var children = [];
+        for (var i = 0; i < connected.length; i++) {
+          children = children.concat (enableNode(connected[i], false));
+        }
+
+        return children;
+      }
+
+      if (force) {
+        node.gateEnabledByUser = true;
+      }
+
+      node.gateEnabled = true;
+      node.color = undefined;
+      // node.label = node.hiddenLabel || node.label;
+      return [node];
+    }
+
+    function getNodesOut(node) {
+      var fromUs = [];
+      var connectedEdges = network.getConnectedEdges(node);
+      for (i = 0; i < connectedEdges.length; i++) {
+        // find out who's on the edge
+        var onEdge = network.getConnectedNodes(connectedEdges[i]);
+        var from = onEdge[0];
+        var to = onEdge[1];
+
+        // only do it if it's FROM us
+        if (from == node) {
+          // ensure if it's TO a mux that their currently
+          // selected input is also FROM us
+          var toNode = document.allNodes[to];
+          if (toNode.mux != null) {
+            itsParent = getTargetParentNode(from, toNode.parents[toNode.muxSelection]);
+
+            // was it us?
+            if (itsParent.id == from) {
+              fromUs.push (to);
+            }
+          } else {
+            // non-switchable clock; no need to check back edge
+            fromUs.push (to);
+          }
+        }
+      }
+
+      return fromUs;
+    }
+
+    function getEdgesIn(node) {
+      var fromUs = [];
+      var connectedEdges = network.getConnectedEdges(node);
+      for (i = 0; i < connectedEdges.length; i++) {
+        // find out who's on the edge
+        var onEdge = network.getConnectedNodes(connectedEdges[i]);
+        var from = onEdge[0];
+        var to = onEdge[1];
+
+        // only do it if it's FROM us
+        if (to == node) {
+          fromUs.push (connectedEdges[i]);
+        }
+      }
+
+      return fromUs;
+    }
+
+    function getTargetParentNode(nodeidx, parentid) {
+      if (always_on[parentid] != null) {
+        var fakename = 'fake-' + nodeidx + '-' + parentid;
+        console.log ('trying to lookup fakename', fakename, 'for parent id', parentid, 'and node id', nodeidx);
+        var res = document.allNodes[fakename];
+        console.log ('returning', res);
+        return res;
+      } else {
+        return document.allNodes[parentid];
+      }
+    }
+
+    function toggleGate(selectedNodeIdx, selectedNode) {
+      var update = [];
+
+      // find selected parent clock, if any
+      var selectedParentClock = null;
+
+      if (selectedNode.mux != null) {
+        selectedParentClock = getTargetParentNode(selectedNodeIdx, selectedNode.parents[selectedNode.muxSelection]);
+        console.log('was mux, selected parent', selectedParentClock);
+      } else if (selectedNode.parents.length > 0) {
+        console.assert(selectedNode.parents.length == 1);
+        selectedParentClock = getTargetParentNode(selectedNodeIdx, selectedNode.parents[0]);
+        console.log('have parents, selected', selectedParentClock);
+      } else {
+        console.log('no parents');
+      }
+
+      // if we have a parent, ensure it was enabled
+      if (selectedParentClock != null && selectedParentClock.gate != null) {
+        if (!selectedParentClock.gateEnabled) {
+          // mark error edge
+          var inEdges = getEdgesIn (selectedNodeIdx);
+          for (var i = 0; i < inEdges.length; i++) {
+            var edgeLabel = inEdges[i];
+
+            var onEdge = network.getConnectedNodes(edgeLabel);
+            if (onEdge[0] == selectedParentClock.id) {
+              // found it, mark edge as error
+              var edge = document.allEdges[edgeLabel];
+
+              console.log ('found error edge', edge);
+              edge.color = 'red';
+              document.edgesDataset.update([edge]);
+
+              // FIXME: store timeout in node and clear
+              // before setting new timeout
+              setTimeout(function () {
+                edge.color = {'inherit': 'from'}
+                document.edgesDataset.update([edge]);
+              }, 500);
+
+              return;
+            }
+          }
+        }
+      }
+
+      // one would hope that we are a gate if we're in this function
+      console.assert(selectedNode.gate != null);
+      var selectedWasEnabled = selectedNode.gateEnabled;
+
+      // do a DFS on everyone downstream from this clock
+      var toVisit = [selectedNodeIdx];
+      var dependsOnUs = [selectedNodeIdx];
+      var seen = {};
+
+      while (toVisit.length > 0) {
+        var current = toVisit.pop();
+
+        // avoid cycles
+        if (seen[current]) {
+          continue;
+        }
+
+        seen[current] = true;
+        var outNodes = getNodesOut(current);
+
+        for (var i = 0; i < outNodes.length; i++) {
+          var node = document.allNodes[outNodes[i]];
+
+          // only visit gate nodes that were previously enabled by user
+          if (node.gate != null && node.gateEnabledByUser != true) {
+            continue;
+          }
+
+          toVisit.push(outNodes[i]);
+          dependsOnUs.push(outNodes[i]);
+        }
+      }
+
+      console.log ('should be going and toggling', dependsOnUs);
+      for (var i = 0; i < dependsOnUs.length; i++) {
+        var node;
+        if (selectedWasEnabled) {
+          nodes = disableNode(dependsOnUs[i]);
+        } else {
+          nodes = enableNode(dependsOnUs[i]);
+        }
+
+        update = update.concat(nodes);
+      }
+
+      var node;
+      if (selectedWasEnabled) {
+        console.log ('we were enabled; disabling ourselves');
+        nodes = disableNode(selectedNodeIdx, true);
+      } else {
+        console.log ('we were disabled; enabling ourselves');
+        nodes = enableNode(selectedNodeIdx, true);
+      }
+
+      update = update.concat(nodes);
+
+      document.nodesDataset.update(update);
+    }
+
+    function toggleChildren(selectedNodeIdx, selectedNode) {
+      var outNodes = getNodesOut(selectedNodeIdx);
+      for (var i = 0; i < outNodes.length; i++) {
+        var node = document.allNodes[outNodes[i]];
+        if (node.gate != null) {
+          toggleGate (outNodes[i], node);
+        }
+      }
+    }
+
+    function switchMux(selectedNodeIdx, selectedNode) {
+      var updateEdges = [];
+
+      // select next mux input
+      selectedNode.muxSelection++;
+      if (selectedNode.muxSelection >= selectedNode.parents.length) {
+        selectedNode.muxSelection = 0;
+      }
+
+      var targetParentNode = selectedNode.parents[selectedNode.muxSelection];
+
+      // update edge styles
+      var inEdges = getEdgesIn(selectedNodeIdx);
+      for (var i = 0; i < inEdges.length; i++) {
+        var onEdge = network.getConnectedNodes(inEdges[i]);
+        var edge = document.allEdges[inEdges[i]];
+
+        if (onEdge[0] == targetParentNode ||
+            onEdge[0] == 'fake-' + selectedNodeIdx + '-' + targetParentNode) {
+          // this is the edge we want to mark as active
+          // edge.dashes = false;
+          edge.color = {'inherit': 'from'};
+        } else {
+          // edge.dashes = true;
+          edge.color = 'rgba(200,200,200,0.5)';
+        }
+
+        updateEdges.push (edge);
+      }
+
+      // FIXME: ensure input is enabled, otherwise mark edge
+      // as error
+
+      document.edgesDataset.update(updateEdges);
+    }
+
+    var currentlySelectedIdx = null;
+
+    function selectNode(params) {
+      if (params.nodes.length > 0) {
+        currentlySelectedIdx = params.nodes[0];
+        var node = document.allNodes[currentlySelectedIdx];
+
+        document.getElementById('selectionActions').style.display = '';
+
+        document.getElementById('gatesel').style.display = node.gate == null ? 'none' : '';
+        document.getElementById('muxsel').style.display = node.mux == null ? 'none' : '';
+        document.getElementById('childrensel').style.display = getNodesOut(currentlySelectedIdx).length == 0 ? 'none' : '';        
+      } else {
+        // deselect
+        currentlySelectedIdx = null;
+        document.getElementById('selectionActions').style.display = 'none';
+      }
+    }
+
+    function onDoubleClickNode(params) {
+      if (params.nodes.length > 0) {
+        var selectedNodeIdx = params.nodes[0];
+        var selectedNode = document.allNodes[selectedNodeIdx];
+
+        if (selectedNode.gate != null) {
+          toggleGate(selectedNodeIdx, selectedNode);
+        } else if (selectedNode.mux != null) {
+          switchMux(selectedNodeIdx, selectedNode);
+        }
+      }   
+    }
+
+    function doWithSelectedNode(f) {
+      f(currentlySelectedIdx, document.allNodes[currentlySelectedIdx]);
+    }
+
+    var always_on = {};
+
+    function scrollToEnabled(e) {
+      console.log (e.target);
+      network.focus (e.target.nodeid);
+    }
+
+    function create() {
+      destroy();
+
+      loadJSON('clocks.json', function (clocks) {
+        var nodes = [];
+        var edges = [];
+
+        for (var i = 0; i < clocks.length; i++) {
+          var clock = clocks[i];
+
+          var node = {
+            id: clock.id, 
+            label: clock.clkname,
+            group: clock.module,
+            title: clock.gate,
+            parents: clock.parents,
+
+            gate: clock.gate,
+            gateEnabled: true,
+            gateEnabledByUser: true,
+            mux: clock.mux,
+            muxSelection: clock.mux ? 0 : null,
+
+            div: clock.div,
+            frac: clock.frac
+          };
+
+          if (clock.gate == null && clock.mux == null && clock.div == null && clock.frac == null) {
+            // don't generate node for always enabled clock
+            always_on[clock.id] = clock.clkname;
+            continue;
+          }
+
+          if (clock.gate == null) {
+            if (clock.mux != null) {
+              node.shape = 'diamond';
+            } else if (clock.div != null) {
+              node.shape = 'triangleDown';
+            } else if (clock.frac != null) {
+              node.shape = 'triangle';
+            }
+
+            node.disabled = true;
+          }
+
+          nodes.push(node);
+
+          for (var j = 0; j < clock.parents.length; j++) {
+            var edge = {to: clock.id, from: clock.parents[j]};
+
+            // fake always active parent edges
+            // since we don't add those nodes to the graph
+            // we can't have an edge to them!
+            //
+            // instead create a node with degree 1
+            // that is only connected to this clock node
+            if (always_on[clock.parents[j]] != null) {
+              var fakename = 'fake-' + clock.id + '-' + clock.parents[j];
+              nodes.push({
+                id: fakename,
+                color: 'grey',
+                label: always_on[clock.parents[j]],
+
+                gate: null,
+                mux: null,
+                div: null,
+                frac: null
+              })
+
+              edge.from = fakename;
+            }
+
+            if (clock.mux != null) {
+              // edge.dashes = j == node.muxSelection ? false : true;
+              if (j != node.muxSelection) {
+                edge.color = 'rgba(200,200,200,0.5)';
+              }
+            }
+
+            edges.push(edge);
+          }
+        }
+
+        // create datasets
+        document.initialNodesArray = nodes;
+        document.nodesDataset = new vis.DataSet(nodes);
+        document.edgesDataset = new vis.DataSet(edges);
+
+        // setup network config
+        var container = document.getElementById('mynetwork');
+        var data = {
+          nodes: document.nodesDataset,
+          edges: document.edgesDataset
+        };
+
+        var options = {
+          layout: {
+            // hierarchical: {
+              // sortMethod: layoutMethod,
+              // direction: 'LR'
+            // }
+          },
+          edges: {
+            smooth: true,
+            arrows: {to : true }
+          },
+          // physics: false
+        };
+
+        // create the network
+        network = new vis.Network(container, data, options);
+
+        document.allNodes = document.nodesDataset.get({returnType:"Object"});
+        document.allEdges = document.edgesDataset.get({returnType:"Object"});
+
+        network.on("click", selectNode);
+        network.on("doubleClick", onDoubleClickNode);
+
+        var enabledView = new vis.DataView(document.nodesDataset, {
+          filter: function (item) {
+            return (item.gate != null && item.gateEnabled);
+          },
+
+          fields: ['id', 'label']
+        });
+
+        var enabledlist = document.getElementById('enabledlist');
+        enabledView.on('*', function (event, properties, senderId) {
+          for (var i = 0; i < properties.items.length; i++) {
+            var item = properties.items[i];
+            if (event == 'remove') {
+              var existing = document.getElementById('enabledlist-' + item);
+              enabledlist.removeChild(existing);
+            } else if (event == 'add') {
+              var o = document.createElement('option');
+              o.id = 'enabledlist-' + item;
+              o.nodeid = document.allNodes[item].id;
+              o.innerText = document.allNodes[item].label;
+              o.onclick = scrollToEnabled;
+              enabledlist.appendChild (o);
+            }
+
+          }
+        });
+
+        // build the option elements
+        for (var i = 0; i < nodes.length; i++) {
+          var node = nodes[i];
+          if (node.gate == null) {
+            continue;
+          }
+
+          if (!node.gateEnabled) {
+            continue;
+          }
+
+          var o = document.createElement('option');
+          o.id = 'enabledlist-' + nodes[i].id;
+          o.nodeid = nodes[i].id;
+
+          o.innerText = nodes[i].label;
+          o.onclick = scrollToEnabled;
+          enabledlist.appendChild (o);
+        }
+      });
+    }
+
+    function updateSearch(elem) {
+      var searchText = elem.value;
+      console.log ('searching for', searchText);
+
+      var searchlist = document.getElementById('searchlist');
+
+      // clear existing list
+      while (searchlist.hasChildNodes()) {
+        searchlist.removeChild(searchlist.lastChild);
+      }
+
+      if (!searchText) {
+        return;
+      }
+
+      // go through all nodes, finding the ones with the search text in the label
+      for (var i = 0; i < document.initialNodesArray.length; i++) {
+        var node = document.initialNodesArray[i];
+        console.log ('considering', node);
+
+        if (node.label.indexOf(searchText) > -1) {
+            var o = document.createElement('option');
+            o.id = 'searchlist-' + node.id;
+            o.nodeid = node.id
+            o.innerText = node.label;
+            o.onclick = scrollToEnabled;
+            searchlist.appendChild (o);
+        }
+      }
+    }
+
+    function clearSearch() {
+      var search = document.getElementById('search');
+      search.value = '';
+      updateSearch(search);
+    }
+
+    window.onload = function () {
+      create();
+    }
+  </script>
+  
+</head>
+
+<body>
+<h2>RK3399 Clocks</h2>
+<div id="mynetwork" style='width: 100%;height: 60vh'></div>
+<div id='selectionActions' style='display: none'>
+  <button id='gatesel' onclick="doWithSelectedNode(toggleGate)">Toggle Gate</button>
+  <button id='childrensel' onclick="doWithSelectedNode(toggleChildren)">Toggle Children</button>
+  <button id='muxsel' onclick="doWithSelectedNode(switchMux)">Switch Mux</button>
+</div>
+<div id='panels'>
+  <div class='panel'>
+    <h3>Enabled Gates</h3>
+    <select size="10" multiple="false" id="enabledlist">
+    </select>
+  </div>
+  <div class='panel'>
+    <h3>Search</h3>
+    <input type='text' id='search' onkeyup="updateSearch(this)" placeholder="clock name"><button onclick="clearSearch()">Clear</button><br /><br />
+
+    Select a result to focus on clock:<br />
+    <select size="7" multiple="false" id="searchlist"></select>
+  </div>
+</div>
+</body>
+</html>
