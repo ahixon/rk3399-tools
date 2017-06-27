@@ -133,6 +133,10 @@ class ClockManager(object):
 
         return r
 
+class RustClockManager(ClockManager):
+    def __init__(self):
+        super(RustClockManager, self).__init__()
+
     def gen_dumper(self, crate="rk3399_tools"):
         r = """extern crate %s;
 
@@ -225,7 +229,7 @@ pub fn print_clocks() {
 
 
 def main():
-    cm = ClockManager()
+    cm = RustClockManager()
 
     # load clock tree data
     with open('data/clocks.json', 'r') as f:
@@ -240,7 +244,9 @@ def main():
         cm.load_dump(f)
 
     # print out uart2 clock speed
-    print cm.clocks_by_name['clk_uart2'].clk
+    # print cm.clocks_by_name['clk_uart2'].clk
+
+    print cm.clocks_by_name['pclk_vio'].gate[0].clocking_enabled
 
 if __name__ == '__main__':
     main()
