@@ -330,7 +330,7 @@
         currentlySelectedIdx = params.nodes[0];
         var node = document.allNodes[currentlySelectedIdx];
 
-        document.getElementById('selectionActions').style.display = '';
+        document.getElementById('selectionActions').style.visibility = '';
 
         document.getElementById('gatesel').style.display = node.gate == null ? 'none' : '';
         document.getElementById('muxsel').style.display = node.mux == null ? 'none' : '';
@@ -338,7 +338,7 @@
       } else {
         // deselect
         currentlySelectedIdx = null;
-        document.getElementById('selectionActions').style.display = 'none';
+        document.getElementById('selectionActions').style.visibility = 'hidden';
       }
     }
 
@@ -384,12 +384,12 @@
             parents: clock.parents,
 
             gate: clock.gate,
-            gateEnabled: true,
+            gateEnabled: clock.gateEnabled,
             gateEnabledByUser: true,
             mux: clock.mux,
-            muxSelection: clock.mux ? 0 : null,
+            muxSelection: clock.mux != null ? 0 : null,
 
-            div: clock.div,
+            div: clock.divider,
             frac: clock.frac
           };
 
@@ -409,6 +409,10 @@
             }
 
             node.disabled = true;
+          }
+
+          if (node.gateEnabled == false) {
+            node.color = 'rgba(200,200,200,0.5)';
           }
 
           nodes.push(node);
@@ -469,7 +473,7 @@
             // }
           },
           edges: {
-            smooth: true,
+            // smooth: true,
             arrows: {to : true }
           },
           // physics: false
