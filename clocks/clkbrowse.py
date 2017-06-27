@@ -4,7 +4,8 @@ import json
 
 from werkzeug.local import LocalProxy
 from clktool import RustClockManager
-from clocks import Clock, Gate, Divider, Mux, Frac, FixedDivider
+from clocks import Clock, Gate, Divider, Mux, Frac, FixedDivider, \
+    DisconnectedClockException
 
 class ClockJSONEncoder(JSONEncoder):
     def default(self, obj):
@@ -15,6 +16,11 @@ class ClockJSONEncoder(JSONEncoder):
                 'module': obj.module,
                 'parents': map(lambda x: x.clk_id, obj.parents)
             }
+
+            try:
+                d['clk'] = obj.clk
+            except DisconnectedClockException:
+                d['clk'] = None
 
             for child in ('divider', 'frac', 'gate', 'mux'):
                 childval = obj.__dict__[child]
@@ -65,6 +71,10 @@ def load_clockman():
     # load some initial state
     with open('uboot-dump.txt', 'r') as f:
         clockman.load_dump(f)
+
+    # XXX: setup lpll to be in a valid state
+    # (postdiv1 is zero?!)
+    clockman.clocks_by_name['lpll'].postdiv1 = 1
 
     return clockman
 

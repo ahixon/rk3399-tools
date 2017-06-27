@@ -70,7 +70,8 @@ class ClockManager(object):
     def load(self, clocks):
         # load all IO clocks first
         for clock_info in clocks:
-            if clock_info['module'] != 'IO_CLK':
+            if not (clock_info['clkname'].endswith ('<IO>') or \
+                clock_info['clkname'].endswith ('<PHY>')):
                 continue
 
             clk_rate = None
@@ -87,7 +88,8 @@ class ClockManager(object):
 
         # load all non-IO clocks now
         for clock_info in clocks:
-            if clock_info['module'] == 'IO_CLK':
+            if (clock_info['clkname'].endswith ('<IO>') or \
+                clock_info['clkname'].endswith ('<PHY>')):
                 continue
 
             if clock_info['module'] == 'PLL':

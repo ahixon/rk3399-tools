@@ -1,6 +1,9 @@
 from genrust import RegisterAccess
 from json import JSONEncoder, JSONDecoder
 
+class DisconnectedClockException(Exception):
+    pass
+
 class Divider(object):
     def __init__(self, reg, owner, value=None):
         super(Divider, self).__init__()
@@ -24,8 +27,15 @@ class Divider(object):
 
     @property
     def clk(self):
-        print self,
-        return self.owner.clk_src.clk / (self.div + 1)
+        # print self,
+        if self.owner is None:
+            raise DisconnectedClockException()
+
+        clk_src = self.owner.clk_src.clk
+        if clk_src is None:
+            return None
+
+        return clk_src / (self.div + 1)
 
     def __repr__(self):
         return '/ %d' % (self.div + 1)
@@ -46,8 +56,15 @@ class FixedDivider(Divider):
 
     @property
     def clk(self):
-        print self,
-        return self.owner.clk_src.clk / self.div
+        # print self,
+        if self.owner is None:
+            raise DisconnectedClockException()
+
+        clk_src = self.owner.clk_src.clk
+        if clk_src is None:
+            return None
+
+        return clk_src / self.div
 
     def __repr__(self):
         return '/ %df' % self.div
@@ -76,8 +93,15 @@ class Frac(object):
 
     @property
     def clk(self):
-        print self,
-        return self.owner.clk_src.clk * self.numerator / self.denominator
+        # print self,
+        if self.owner is None:
+            raise DiscnnectedClockException()
+
+        clk_src = self.owner.clk_src.clk
+        if clk_src is None:
+            return None
+
+        return clk_src * self.numerator / self.denominator
 
     def reg_value(self):
         return self.numerator << 16 | self.denominator
@@ -158,7 +182,7 @@ class Mux(object):
 
     @property
     def clk(self):
-        print self,
+        # print self,
         return self.clk_src.clk
 
     def __repr__(self):
@@ -201,7 +225,7 @@ class Clock(object):
     # if at least one of the gates are powered, rather than
     # some boolean condition on the state of the gates
     def clk(self):
-        print self,
+        # print self,
         if self.gate:
             for g in self.gate:
                 if g.clocking_enabled == None:
@@ -244,7 +268,7 @@ class FixedClock(Clock):
 
     @property
     def clk(self):
-        print self,
+        # print self,
         return self.clk_rate
 
     @property
