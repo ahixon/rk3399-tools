@@ -227,7 +227,6 @@ pub fn print_clocks() {
             print line
             assert False
 
-
 def main():
     cm = RustClockManager()
 

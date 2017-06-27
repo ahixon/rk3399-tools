@@ -1,4 +1,5 @@
 from genrust import RegisterAccess
+from json import JSONEncoder, JSONDecoder
 
 class Divider(object):
     def __init__(self, reg, owner, value=None):

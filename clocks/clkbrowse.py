@@ -1,9 +1,59 @@
 from flask import Flask, g, render_template, jsonify
+from flask.json import JSONEncoder
 import json
+
 from werkzeug.local import LocalProxy
 from clktool import RustClockManager
+from clocks import Clock, Gate, Divider, Mux, Frac, FixedDivider
+
+class ClockJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Clock):
+            d = {
+                'id': obj.clk_id,
+                'clkname': obj.name,
+                'module': obj.module,
+                'parents': map(lambda x: x.clk_id, obj.parents)
+            }
+
+            for child in ('divider', 'frac', 'gate', 'mux'):
+                childval = obj.__dict__[child]
+                if childval is not None:
+                    if child == 'gate':
+                        # FIXME: support multiple gates
+                        childval = childval[0]
+
+                    d[child] = childval
+
+                    if child == 'mux':
+                        # also send mux selection
+                        d['muxSelection'] = childval.selected_clk_idx
+
+                    if child == 'gate':
+                        # also send gate status
+                        d['gateEnabled'] = childval.clocking_enabled
+                else:
+                    d[child] = None
+
+            return d
+
+        if isinstance(obj, Gate) or isinstance(obj, Mux) or \
+            isinstance(obj, Divider) or isinstance(obj, Frac):
+            if 'reg' in obj.__dict__:
+                return obj.reg.name
+            elif isinstance(obj, FixedDivider):
+                return obj.div
+
+            assert False
+
+        return super(ClockJSONEncoder, self).default(obj)
+
+# class ClockJSONDecoder(JSONDecoder):
+#     pass
 
 app = Flask(__name__)
+app.json_encoder = ClockJSONEncoder
+# app.json_decoder = ClockJSONDecoder
 
 def load_clockman():
     clockman = RustClockManager()
@@ -29,8 +79,8 @@ def get_clockman():
 clockman = LocalProxy(get_clockman)
 
 @app.route('/clocks/all')
-def get_clocks():
-    return jsonify(clockman.clocks)
+def all_clocks():
+    return jsonify(clockman.clocks.values())
 
 @app.route('/clocks/<clkname>', methods=('GET', 'POST'))
 def clock(name):
