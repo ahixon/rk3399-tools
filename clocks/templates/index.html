@@ -37,20 +37,32 @@
     var network = null;
     var layoutMethod = "hubsize";
 
-    function loadJSON(path, success, error) {
+    function loadJSON(path, success, error, data) {
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
-            success(JSON.parse(xhr.responseText));
-          }
-          else {
-            error(xhr);
+            if (success != null) {
+              success(JSON.parse(xhr.responseText));
+            }
+          } else {
+            if (error) {
+              error(xhr);
+            } else {
+              console.error(xhr);
+            }
           }
         }
       };
-      xhr.open('GET', path, true);
-      xhr.send();
+
+      if (data) {
+        xhr.open('POST', path, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
+      } else {
+        xhr.open('GET', path, true);
+        xhr.send();
+      }
     }
 
     function destroy() {
@@ -325,6 +337,8 @@
 
     var currentlySelectedIdx = null;
 
+    var infoFields = ['label', 'rate'];
+
     function selectNode(params) {
       if (params.nodes.length > 0) {
         currentlySelectedIdx = params.nodes[0];
@@ -334,7 +348,14 @@
 
         document.getElementById('gatesel').style.display = node.gate == null ? 'none' : '';
         document.getElementById('muxsel').style.display = node.mux == null ? 'none' : '';
-        document.getElementById('childrensel').style.display = getNodesOut(currentlySelectedIdx).length == 0 ? 'none' : '';        
+        document.getElementById('childrensel').style.display = getNodesOut(currentlySelectedIdx).length == 0 ? 'none' : '';
+
+        // fill in info
+        for (var i = 0; i < infoFields.length; i++) {
+          var fieldname = infoFields[i];
+          var elem = document.getElementById('clockinfo-' + fieldname);
+          elem.innerText = node[fieldname];
+        }
       } else {
         // deselect
         currentlySelectedIdx = null;
@@ -390,7 +411,9 @@
             muxSelection: clock.mux != null ? 0 : null,
 
             div: clock.divider,
-            frac: clock.frac
+            frac: clock.frac,
+
+            rate: clock.clk
           };
 
           if (clock.gate == null && clock.mux == null && clock.div == null && clock.frac == null) {
@@ -500,14 +523,22 @@
         enabledView.on('*', function (event, properties, senderId) {
           for (var i = 0; i < properties.items.length; i++) {
             var item = properties.items[i];
+
+            // tell clockserver to update
+            var clk = document.allNodes[item];
+
+            loadJSON ('/clocks/' + clk.label, null, null, {
+              'gateEnabled': clk.gateEnabled
+            });
+
             if (event == 'remove') {
               var existing = document.getElementById('enabledlist-' + item);
               enabledlist.removeChild(existing);
             } else if (event == 'add') {
               var o = document.createElement('option');
               o.id = 'enabledlist-' + item;
-              o.nodeid = document.allNodes[item].id;
-              o.innerText = document.allNodes[item].label;
+              o.nodeid = clk.id;
+              o.innerText = clk.label;
               o.onclick = scrollToEnabled;
               enabledlist.appendChild (o);
             }
@@ -601,6 +632,10 @@
 
     Select a result to focus on clock:<br />
     <select size="7" multiple="false" id="searchlist"></select>
+  </div>
+  <div class='panel'>
+    <h3>Clock Info: <span id='clockinfo-label'></span></h3>
+    <h4>Rate:</h4> <span id='clockinfo-rate'></span>
   </div>
 </div>
 </body>

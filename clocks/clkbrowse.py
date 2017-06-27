@@ -1,6 +1,7 @@
-from flask import Flask, g, render_template, jsonify
+from flask import Flask, g, render_template, jsonify, request
 from flask.json import JSONEncoder
 import json
+import pickle
 
 from werkzeug.local import LocalProxy
 from clktool import RustClockManager
@@ -78,28 +79,43 @@ def load_clockman():
 
     return clockman
 
-def get_clockman():
-    clockman = getattr(g, '_clockman', None)
-
-    if clockman is None:
-        clockman = g._clockman = load_clockman()
-
-    return clockman
-
-clockman = LocalProxy(get_clockman)
+clockman = load_clockman()
 
 @app.route('/clocks/all')
 def all_clocks():
     return jsonify(clockman.clocks.values())
 
 @app.route('/clocks/<clkname>', methods=('GET', 'POST'))
-def clock(name):
+def clock(clkname):
     if request.method == 'POST':
+        clock = clockman.clocks_by_name[clkname]
+        j = request.get_json()
+
         # update clock
-        pass
+        assert 'gateEnabled' in j
+        clock.gate[0].clocking_enabled = j['gateEnabled']
+
+        # mutate back?
+        clockman.clocks_by_name[clkname] = clock
+
+        return jsonify(clock)
     else:
-        # just return current state of clock
-        pass
+        return jsonify(clockman.clocks_by_name[clkname])
+
+@app.route('/state/dump/<fname>')
+def dump_state(fname):
+    with open(fname, 'wb') as f:
+        pickle.dump(clockman, f, -1)
+
+    return jsonify({'status': 'ok'})
+
+@app.route('/state/load/<fname>')
+def load_state(fname):
+    global clockman
+    with open(fname, 'rb') as f:
+        clockman = pickle.load(f)
+
+    return jsonify({'status': 'ok'})
 
 @app.route('/')
 def index():
