@@ -177,12 +177,62 @@ pub fn print_clocks() {
 
         return r
 
+    def save_dump_regs(self, clock, dumpname, reg, level):
+        indent = '    '
+        print_indent = '\t' * level
+        print_indent_val = '\t' * (level + 1)
+
+        r = ''
+
+        r += '%s%s: ' % (print_indent, dumpname)
+
+        if isinstance(reg, list):
+            reg_val = '|'.join (map (lambda x: x.from_obj(), reg))
+        else:
+            if reg.from_obj is None:
+                # just pull named reg from obj
+                reg_val = clock.__dict__[dumpname]
+            else:
+                reg_val = reg.from_obj()
+
+        r += '%s0x%x\n' % (print_indent_val, reg_val)
+
+        return r
+
+    def save_dump(self):
+        r = ''
+
+        for clock in self.clocks.values():
+            r += '%s: \n' % clock.name
+
+            for reg in clock.register_map:
+                r += self.save_dump_regs(clock, reg, clock.register_map[reg], 1)
+
+            # and children
+            for child in clock.register_children:
+                r += '|-%s: \n' % child
+
+                child_obj = clock.__dict__[child]
+                if isinstance(child_obj, list):
+                    # FIXME: handle multiple gates
+                    # for now we just take the first one
+                    if len(child_obj) > 1:
+                        print 'WARNING: only using one gate from', clock
+
+                    child_obj = child_obj[0]
+                
+                for reg in child_obj.register_map:
+                    r += self.save_dump_regs(clock, reg, child_obj.register_map[reg], 2)
+
+        return r
+
     def set_val_in_regmap(self, current_clk, regmap_name, val):
         if current_clk.register_map[regmap_name].to_obj:
             current_clk.register_map[regmap_name].to_obj(val)
         else:
             # just direct set on object in class; doesn't have a deserialisation function
             current_clk.__dict__[regmap_name] = val
+
 
     def load_dump(self, f):
         current_clk_name = None
@@ -247,7 +297,10 @@ def main():
     # print out uart2 clock speed
     # print cm.clocks_by_name['clk_uart2'].clk
 
-    print cm.clocks_by_name['pclk_vio'].gate[0].clocking_enabled
+    cm.clocks_by_name['pclk_vio'].gate[0].clocking_enabled = False
+
+    with open('testout.txt', 'w') as f:
+        f.write(cm.save_dump())
 
 if __name__ == '__main__':
     main()
