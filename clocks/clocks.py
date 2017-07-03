@@ -95,7 +95,7 @@ class Frac(object):
     def clk(self):
         # print self,
         if self.owner is None:
-            raise DiscnnectedClockException()
+            raise DisconnectedClockException()
 
         clk_src = self.owner.clk_src.clk
         if clk_src is None:
@@ -134,9 +134,9 @@ class Gate(object):
 
     def reg_value(self):
         if self.clocking_enabled:
-            return 1
+            return 0
 
-        return 0
+        return 1
 
     def from_reg_value(self, value):
         # "when HIGH, disable clock"
