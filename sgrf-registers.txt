@@ -1,5 +1,7 @@
 SGRF Registers
 
+see memento/src/rockchip/u-boot/arch/arm/include/asm/arch/grf_rk3399.h
+
 See also: System Security manual section
 But there are no bit mappings.
 We might be able to get more information from other 33xx devices.
