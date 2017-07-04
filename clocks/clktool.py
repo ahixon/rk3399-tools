@@ -280,7 +280,7 @@ pub fn setup_clocks() {
                     assert not write.whole_register
 
                 rust_values = ' | \n        '.join (map (lambda x: x.rust_value, reg_writes))
-                rust_expr = '%s.modify(|_, w| unsafe { w.bits(r.bits() | \n        %s) })' % (
+                rust_expr = '%s.modify(|r, w| unsafe { w.bits(r.bits() | \n        %s) })' % (
                     accessor, rust_values)
                 bit_names = map(lambda x: x.bit_name, reg_writes)
 
@@ -289,6 +289,7 @@ pub fn setup_clocks() {
                 bit_names_comment = ',\n    // '.join (filter(lambda x: x is not None, bit_names))
 
             r += '    // %s\n' % bit_names_comment
+            r += '    println!("%s");\n' % accessor
             r += '    %s;\n' % rust_expr
             r += '    \n'
 
@@ -443,22 +444,19 @@ def main():
         cm.load(json.load(f))
 
     # write dumper
-    with open('clocks.rs', 'w') as f:
+    with open('clock_dump.rs', 'w') as f:
         f.write(cm.gen_dumper())
 
     # load clock dump data
-    with open('uboot-dump.txt', 'r') as f:
+    with open('mostoff.txt', 'r') as f:
         cm.load_dump(f)
 
     # print out uart2 clock speed
     # print cm.clocks_by_name['clk_uart2'].clk
+    # cm.clocks_by_name['pclk_vio'].gate[0].clocking_enabled = False
 
-    cm.clocks_by_name['pclk_vio'].gate[0].clocking_enabled = False
-
-    with open('testout.txt', 'w') as f:
-        f.write(cm.save_dump())
-
-    print cm.gen_loader()
+    with open('clock_init.rs', 'w') as f:
+        f.write(cm.gen_loader())
 
 if __name__ == '__main__':
     main()
