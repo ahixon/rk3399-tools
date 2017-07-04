@@ -139,6 +139,51 @@ class RustClockManager(ClockManager):
     def __init__(self):
         super(RustClockManager, self).__init__()
 
+    def gen_load_regs(self, clock, dumpname, reg, level):
+        indent = '    '
+        print_indent_val = '\\t' * (level + 1)
+
+        assert not isinstance(reg, list)
+
+        if reg.from_obj is not None:
+            val = reg.from_obj()
+        else:
+            val = clock.__dict__[dumpname]
+
+        r = indent + reg.rust_write_expr(val) + '\n'
+
+        return r
+
+    def gen_loader(self, crate="rk3399_tools"):
+        r = """extern crate %s;
+
+pub fn setup_clocks() {
+""" % crate
+
+        for peripheral in self.RUST_PERIPHERALS:
+            r += '    let %s = unsafe { &*%s::%s.get() };\n' % (
+                peripheral, crate, peripheral.upper())
+
+        r += '\n'
+
+        for clock in self.clocks.values():
+            for reg in clock.register_map:
+                r += self.gen_load_regs(clock, reg, clock.register_map[reg], 1)
+
+            # and children
+            for child in clock.register_children:
+                child_obj = clock.__dict__[child]
+                if not isinstance(child_obj, list):
+                    child_obj = [child_obj]
+                
+                for subchild_obj in child_obj:
+                    for reg in subchild_obj.register_map:
+                        r += self.gen_load_regs(clock, reg, subchild_obj.register_map[reg], 2)
+
+        r += '}\n'
+
+        return r
+
     def gen_dumper(self, crate="rk3399_tools"):
         r = """extern crate %s;
 
@@ -233,7 +278,6 @@ pub fn print_clocks() {
             # just direct set on object in class; doesn't have a deserialisation function
             current_clk.__dict__[regmap_name] = val
 
-
     def load_dump(self, f):
         current_clk_name = None
         current_clk = None
@@ -301,6 +345,8 @@ def main():
 
     with open('testout.txt', 'w') as f:
         f.write(cm.save_dump())
+
+    print cm.gen_loader()
 
 if __name__ == '__main__':
     main()

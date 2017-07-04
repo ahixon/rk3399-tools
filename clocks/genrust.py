@@ -32,6 +32,47 @@ class RegisterAccess(object):
         else:
             return '%s[%d:%d]' % (self.name, self.bits[0], self.bits[1])
 
+    def rust_write_expr(self, val):
+        rust_peripheral = reg_to_rust_peripheral(self.name)
+        rust_field_name = self.name.lower()
+
+        if isinstance(self.bits, int):
+            # single bit
+            rust_reg_value = '(%s & 1) << %d' % (val, self.bits)
+        elif self.bits == None:
+            # whole register
+            rust_reg_value = val
+        else:
+            # bit range, ordered (msb, lsb) tuple
+            # zero indexed
+            bitrange = self.bits[0] - self.bits[1]
+            if bitrange <= 0:
+                print self.bits
+                print bitrange
+                assert False
+
+            mask = '((1 << %d) - 1)' % bitrange
+            rust_reg_value = '(%d & %s) << %d' % (val, mask, self.bits[1])
+
+        bitwise_op = self.bitwise_op
+        if bitwise_op == '~':
+            # rust uses ! for bitwise not
+            bitwise_op = '!'
+
+        if bitwise_op:
+            rust_reg_value = bitwise_op + rust_reg_value
+
+        if self.bits == None:
+            # write whole register, no need to keep other bits
+            rust_reg_access = '%s.%s.write(|w| unsafe { w.bits(%s) }' % (
+                rust_peripheral, rust_field_name, rust_reg_value)
+        else:
+            # modify; set with OR of the read
+            rust_reg_access = '%s.%s.modify(|_, w| unsafe { w.bits(r.bits() | %s) }' % (
+                rust_peripheral, rust_field_name, rust_reg_value)
+
+        return rust_reg_access
+
     def rust_expr(self):
         rust_peripheral = reg_to_rust_peripheral(self.name)
         rust_field_name = self.name.lower()
