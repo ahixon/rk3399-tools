@@ -238,6 +238,10 @@ pub fn setup_clocks() {
         # switch, and some of these intermediate states may in fact be invalid.
 
         for accessor in sorted(reg_states):
+            if accessor == 'grf.grf_soc_con5':
+                print 'skipping grf.grf_soc_con5; seems to be wrong register?'
+                continue
+                
             reg_writes = reg_states[accessor][:]
 
             rust_expr = None

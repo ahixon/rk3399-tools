@@ -1,5 +1,3 @@
-export saved state to execute on firefly
-
 run on Cortex M0
 gate big core off
 
