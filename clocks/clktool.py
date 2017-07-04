@@ -3,6 +3,7 @@ import json
 from clocks import *
 import re
 from collections import defaultdict
+import lxml.etree as ET
 
 class ClockManager(object):
     def __init__(self):
@@ -137,8 +138,53 @@ class ClockManager(object):
         return r
 
 class RustClockManager(ClockManager):
-    def __init__(self):
+    def __init__(self, svd_path):
         super(RustClockManager, self).__init__()
+        self.svd = self.load_svd(svd_path)
+
+    def load_svd(self, svd_path):
+        tree = ET.parse(svd_path)
+        root = tree.getroot()
+
+        svd_peripherals = {}
+
+        for peripheral in root.iter('peripheral'):
+            peripheral_rustname = peripheral.find('name').text.lower()
+            svd_regs = {}
+
+            if 'derivedFrom' in peripheral.attrib:
+                # use existing as base
+                svd_regs.update(svd_peripherals[peripheral.attrib['derivedFrom'].lower()])
+
+            for reg in peripheral.iter('register'):
+                reg_rustname = reg.find('name').text.lower()
+
+                fields = {}
+                for field in reg.iter('field'):
+                    name = field.find('name').text.lower()
+
+                    bits = field.find('bitRange').text
+                    parsed_bits = None
+
+                    if bits.startswith('['):
+                        # bit range
+                        m = re.match('\[(\d+)\s*:\s*(\d+)\]', bits)
+                        assert m
+                        parsed_bits = map(int, [m.group(1), m.group(2)])
+                    else:
+                        # single bit
+                        parsed_bits = int(bits)
+
+                    # store the bit accessors
+                    # TODO: might want to construct a RegisterAccess from this instead
+                    # but will need to change the "name" fields in it
+                    fields[name] = bits
+
+                svd_regs[reg_rustname] = fields
+
+            svd_peripherals[peripheral_rustname] = svd_regs
+
+        return svd_peripherals
 
     def get_write_reg(self, clock, dumpname, reg, level, displayname):
         assert not isinstance(reg, list)
@@ -365,7 +411,7 @@ pub fn print_clocks() {
             assert False
 
 def main():
-    cm = RustClockManager()
+    cm = RustClockManager('../rk3399-ap.svd')
 
     # load clock tree data
     with open('data/clocks.json', 'r') as f:
@@ -387,7 +433,7 @@ def main():
     with open('testout.txt', 'w') as f:
         f.write(cm.save_dump())
 
-    print cm.gen_loader()
+    # print cm.gen_loader()
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,6 @@
 export saved state to execute on firefly
 	some registers may have write enable bits -- need to load SVD data to set these appropriately
-	should set entire register in one go to avoid possibly invalid states
+		these are named: write_mask and write_enable
 
 run on Cortex M0
 gate big core off
@@ -19,3 +19,4 @@ set constraints on:
 	- vcodec needs to be about 400MHz
 	- serial port needs to be whatever it needs to be
 	- ISP also about 400MHz
+
