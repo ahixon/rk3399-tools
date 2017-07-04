@@ -2,6 +2,7 @@ from genrust import extract_registers, REGPREFIX_NAME_FIXED
 import json
 from clocks import *
 import re
+from collections import defaultdict
 
 class ClockManager(object):
     def __init__(self):
@@ -139,20 +140,18 @@ class RustClockManager(ClockManager):
     def __init__(self):
         super(RustClockManager, self).__init__()
 
-    def gen_load_regs(self, clock, dumpname, reg, level):
-        indent = '    '
-        print_indent_val = '\\t' * (level + 1)
-
+    def get_write_reg(self, clock, dumpname, reg, level, displayname):
         assert not isinstance(reg, list)
 
+        # bit_name = None
         if reg.from_obj is not None:
             val = reg.from_obj()
+            bit_name = '%s (%s)' % (clock.name, displayname)
         else:
             val = clock.__dict__[dumpname]
+            bit_name = '%s (%s)' % (clock.name, dumpname)
 
-        r = indent + reg.rust_write_expr(val) + '\n'
-
-        return r
+        return reg.rust_write_expr(val, name=bit_name)
 
     def gen_loader(self, crate="rk3399_tools"):
         r = """extern crate %s;
@@ -166,9 +165,13 @@ pub fn setup_clocks() {
 
         r += '\n'
 
+        reg_states = defaultdict(list)
+
+        # collect all the register bits we will be writing to and their values
         for clock in self.clocks.values():
             for reg in clock.register_map:
-                r += self.gen_load_regs(clock, reg, clock.register_map[reg], 1)
+                write_reg = self.get_write_reg(clock, reg, clock.register_map[reg], 1, reg)
+                reg_states[write_reg.accessor].append(write_reg)
 
             # and children
             for child in clock.register_children:
@@ -178,7 +181,45 @@ pub fn setup_clocks() {
                 
                 for subchild_obj in child_obj:
                     for reg in subchild_obj.register_map:
-                        r += self.gen_load_regs(clock, reg, subchild_obj.register_map[reg], 2)
+                        write_reg = self.get_write_reg(clock, reg, subchild_obj.register_map[reg], 2, child)
+                        reg_states[write_reg.accessor].append(write_reg)
+
+        # now we can coalesce together individual register writes into a single write
+        # to avoid any invalid intermediate states.
+        #
+        # for example, if we're updating the PLL state: the current
+        # frequency is dependent on a number of bits in multiple registers.
+        # if we update each one by one, then the PLL's state will constantly
+        # switch, and some of these intermediate states may in fact be invalid.
+
+        for accessor in sorted(reg_states):
+            reg_writes = reg_states[accessor]
+            was_only_reg_write = len(reg_writes) == 1
+
+            rust_expr = None
+            bit_names = []
+
+            if was_only_reg_write and reg_writes[0].whole_register:
+                rust_expr = '%s.write(|w| unsafe { w.bits(%s) })' % (
+                    accessor, reg_writes[0].rust_value)
+                bit_names = reg_writes[0].bit_name
+            else:
+                for write in reg_writes:
+                    # only one whole register write is permitted
+                    # per accessor; if we're in this case we have more than
+                    # one reg write and we're mixing and matching whole and partial writes!
+                    assert not write.whole_register
+
+                rust_values = ' | \n        '.join (map (lambda x: x.rust_value, reg_writes))
+                rust_expr = '%s.modify(|_, w| unsafe { w.bits(r.bits() | \n        %s) })' % (
+                    accessor, rust_values)
+                bit_names = map(lambda x: x.bit_name, reg_writes)
+
+            bit_names_comment = ', '.join (map(lambda x: x or '[unknown bitfield]', bit_names))
+
+            r += '    // %s\n' % bit_names_comment
+            r += '    %s;\n' % rust_expr
+            r += '    \n'
 
         r += '}\n'
 

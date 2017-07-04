@@ -2,6 +2,18 @@ import json
 import re
 import sys
 
+class RustRegisterWrite(object):
+    def __init__(self, obj_name, field_name, rust_value, whole_register=False, bit_name=None):
+        self.obj_name = obj_name
+        self.field_name = field_name
+        self.rust_value = rust_value
+        self.whole_register = whole_register
+        self.bit_name = bit_name
+
+    @property
+    def accessor(self):
+        return '%s.%s' % (self.obj_name, self.field_name)
+
 class RegisterAccess(object):
     def __init__(self, name, op=None, prop=None, bits=None, wmask=False):
         self.name = name
@@ -32,7 +44,10 @@ class RegisterAccess(object):
         else:
             return '%s[%d:%d]' % (self.name, self.bits[0], self.bits[1])
 
-    def rust_write_expr(self, val):
+    def rust_write_expr(self, val, name=None):
+        #'%s.%s.modify(|_, w| unsafe { w.bits(r.bits() | %s) }'
+        # OR
+        # '%s.%s.write(|w| unsafe { w.bits(%s) }'
         rust_peripheral = reg_to_rust_peripheral(self.name)
         rust_field_name = self.name.lower()
 
@@ -62,16 +77,10 @@ class RegisterAccess(object):
         if bitwise_op:
             rust_reg_value = bitwise_op + rust_reg_value
 
-        if self.bits == None:
-            # write whole register, no need to keep other bits
-            rust_reg_access = '%s.%s.write(|w| unsafe { w.bits(%s) }' % (
-                rust_peripheral, rust_field_name, rust_reg_value)
-        else:
-            # modify; set with OR of the read
-            rust_reg_access = '%s.%s.modify(|_, w| unsafe { w.bits(r.bits() | %s) }' % (
-                rust_peripheral, rust_field_name, rust_reg_value)
-
-        return rust_reg_access
+        return RustRegisterWrite(
+            rust_peripheral, rust_field_name,
+            rust_reg_value, whole_register=self.bits == None,
+            bit_name=name)
 
     def rust_expr(self):
         rust_peripheral = reg_to_rust_peripheral(self.name)
