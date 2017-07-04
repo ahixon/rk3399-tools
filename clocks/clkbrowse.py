@@ -105,7 +105,7 @@ def clock(clkname):
 @app.route('/state/dump/<fname>')
 def dump_state(fname):
     with open(fname, 'wb') as f:
-        pickle.dump(clockman, f, -1)
+        f.write(clockman.save_dump())
 
     return jsonify({'status': 'ok'})
 
@@ -113,7 +113,7 @@ def dump_state(fname):
 def load_state(fname):
     global clockman
     with open(fname, 'rb') as f:
-        clockman = pickle.load(f)
+        clockman.load_dump(f)
 
     return jsonify({'status': 'ok'})
 
