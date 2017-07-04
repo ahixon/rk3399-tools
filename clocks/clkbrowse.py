@@ -63,7 +63,7 @@ app.json_encoder = ClockJSONEncoder
 # app.json_decoder = ClockJSONDecoder
 
 def load_clockman():
-    clockman = RustClockManager()
+    clockman = RustClockManager('../rk3399-ap.svd')
 
     # load clock tree
     with open('data/clocks.json', 'r') as f:
