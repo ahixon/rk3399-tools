@@ -25,7 +25,7 @@
       padding: 12px;
     }
 
-    #searchlist, #enabledlist {
+    #searchlist, #enabledlist, #disabledlist {
       width: 210px;
     }
   </style>
@@ -385,6 +385,8 @@
     function scrollToEnabled(e) {
       console.log (e.target);
       network.focus (e.target.nodeid);
+
+      // selectNode(e.target.nodeid);
     }
 
     function create() {
@@ -499,71 +501,88 @@
             // smooth: true,
             arrows: {to : true }
           },
-          // physics: false
+          physics: false
         };
 
         // create the network
         network = new vis.Network(container, data, options);
+        network.on("click", selectNode);
+        network.on("doubleClick", onDoubleClickNode);
 
         document.allNodes = document.nodesDataset.get({returnType:"Object"});
         document.allEdges = document.edgesDataset.get({returnType:"Object"});
 
-        network.on("click", selectNode);
-        network.on("doubleClick", onDoubleClickNode);
+        var listTypes = ['enabled', 'disabled'];
 
-        var enabledView = new vis.DataView(document.nodesDataset, {
-          filter: function (item) {
-            return (item.gate != null && item.gateEnabled);
-          },
+        for (var j = 0; j < listTypes.length; j++) {
+          var listType = listTypes[j];
+          console.log('constructing', listType);
 
-          fields: ['id', 'label']
-        });
+          var view = new vis.DataView(document.nodesDataset, {
+            filter: function (item) {
+              if (listType == 'enabled') {
+                return (item.gate != null && item.gateEnabled);  
+              } else {
+                return (item.gate != null && !item.gateEnabled);
+              }
+              
+            },
 
-        var enabledlist = document.getElementById('enabledlist');
-        enabledView.on('*', function (event, properties, senderId) {
-          for (var i = 0; i < properties.items.length; i++) {
-            var item = properties.items[i];
+            fields: ['id', 'label']
+          });
 
-            // tell clockserver to update
-            var clk = document.allNodes[item];
+          var list = document.getElementById(listType + 'list');
+          view.on('*', function (event, properties, senderId) {
+            for (var i = 0; i < properties.items.length; i++) {
+              var item = properties.items[i];
 
-            loadJSON ('/clocks/' + clk.label, null, null, {
-              'gateEnabled': clk.gateEnabled
-            });
+              var clk = document.allNodes[item];
 
-            if (event == 'remove') {
-              var existing = document.getElementById('enabledlist-' + item);
-              enabledlist.removeChild(existing);
-            } else if (event == 'add') {
-              var o = document.createElement('option');
-              o.id = 'enabledlist-' + item;
-              o.nodeid = clk.id;
-              o.innerText = clk.label;
-              o.onclick = scrollToEnabled;
-              enabledlist.appendChild (o);
+              // tell clockserver to update
+              // but only on first list type, otherwise we'll send multiple events
+              if (j == 0) {
+                loadJSON ('/clocks/' + clk.label, null, null, { 'gateEnabled': clk.gateEnabled });
+              }
+
+              if (event == 'remove') {
+                var existing = document.getElementById(listType + 'list-' + item);
+                list.removeChild(existing);
+              } else if (event == 'add') {
+                var o = document.createElement('option');
+                o.id = listType + '-' + item;
+                o.nodeid = clk.id;
+                o.innerText = clk.label;
+                o.onclick = scrollToEnabled;
+                list.appendChild (o);
+              }
+            }
+          });
+
+          // build the option elements
+          for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            if (node.gate == null) {
+              continue;
             }
 
+            if (listType == 'enabled') {
+              if (!node.gateEnabled) {
+                continue;
+              }
+            } else {
+              if (node.gateEnabled) {
+                continue;
+              }
+            }
+
+            var o = document.createElement('option');
+            o.id = listType + 'list-' + nodes[i].id;
+            o.nodeid = nodes[i].id;
+
+            o.innerText = nodes[i].label;
+            o.onclick = scrollToEnabled;
+            list.appendChild (o);
           }
-        });
-
-        // build the option elements
-        for (var i = 0; i < nodes.length; i++) {
-          var node = nodes[i];
-          if (node.gate == null) {
-            continue;
-          }
-
-          if (!node.gateEnabled) {
-            continue;
-          }
-
-          var o = document.createElement('option');
-          o.id = 'enabledlist-' + nodes[i].id;
-          o.nodeid = nodes[i].id;
-
-          o.innerText = nodes[i].label;
-          o.onclick = scrollToEnabled;
-          enabledlist.appendChild (o);
         }
       });
     }
@@ -624,6 +643,11 @@
   <div class='panel'>
     <h3>Enabled Gates</h3>
     <select size="10" multiple="false" id="enabledlist">
+    </select>
+  </div>
+  <div class='panel'>
+    <h3>Disabled Gates</h3>
+    <select size="10" multiple="false" id="disabledlist">
     </select>
   </div>
   <div class='panel'>
