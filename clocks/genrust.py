@@ -3,12 +3,13 @@ import re
 import sys
 
 class RustRegisterWrite(object):
-    def __init__(self, obj_name, field_name, rust_value, whole_register=False, bit_name=None):
+    def __init__(self, obj_name, field_name, rust_value, access, whole_register=False, bit_name=None):
         self.obj_name = obj_name
         self.field_name = field_name
         self.rust_value = rust_value
         self.whole_register = whole_register
         self.bit_name = bit_name
+        self.access = access
 
     @property
     def accessor(self):
@@ -43,6 +44,26 @@ class RegisterAccess(object):
             return '%s[%d]' % (self.name, self.bits)
         else:
             return '%s[%d:%d]' % (self.name, self.bits[0], self.bits[1])
+
+    def rust_writemask_value(self, shift=16):
+        if isinstance(self.bits, int):
+            # single bit
+            rust_reg_value = '1 << %d' % (self.bits + shift)
+        elif self.bits == None:
+            raise ValueError('no writemask required')
+        else:
+            # bit range, ordered (msb, lsb) tuple
+            # zero indexed
+            bitrange = self.bits[0] - self.bits[1]
+            if bitrange <= 0:
+                print self.bits
+                print bitrange
+                assert False
+
+            mask = '((1 << %d) - 1)' % bitrange
+            rust_reg_value = '%s << %d' % (mask, self.bits[1] + shift)
+
+        return rust_reg_value
 
     def rust_write_expr(self, val, name=None):
         #'%s.%s.modify(|_, w| unsafe { w.bits(r.bits() | %s) }'
@@ -79,7 +100,7 @@ class RegisterAccess(object):
 
         return RustRegisterWrite(
             rust_peripheral, rust_field_name,
-            rust_reg_value, whole_register=self.bits == None,
+            rust_reg_value, self, whole_register=self.bits == None,
             bit_name=name)
 
     def rust_expr(self):

@@ -1,6 +1,4 @@
 export saved state to execute on firefly
-	some registers may have write enable bits -- need to load SVD data to set these appropriately
-		these are named: write_mask and write_enable
 
 run on Cortex M0
 gate big core off

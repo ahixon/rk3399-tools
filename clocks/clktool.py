@@ -1,4 +1,4 @@
-from genrust import extract_registers, REGPREFIX_NAME_FIXED
+from genrust import extract_registers, REGPREFIX_NAME_FIXED, RustRegisterWrite
 import json
 from clocks import *
 import re
@@ -178,7 +178,7 @@ class RustClockManager(ClockManager):
                     # store the bit accessors
                     # TODO: might want to construct a RegisterAccess from this instead
                     # but will need to change the "name" fields in it
-                    fields[name] = bits
+                    fields[name] = parsed_bits
 
                 svd_regs[reg_rustname] = fields
 
@@ -189,7 +189,6 @@ class RustClockManager(ClockManager):
     def get_write_reg(self, clock, dumpname, reg, level, displayname):
         assert not isinstance(reg, list)
 
-        # bit_name = None
         if reg.from_obj is not None:
             val = reg.from_obj()
             bit_name = '%s (%s)' % (clock.name, displayname)
@@ -239,16 +238,40 @@ pub fn setup_clocks() {
         # switch, and some of these intermediate states may in fact be invalid.
 
         for accessor in sorted(reg_states):
-            reg_writes = reg_states[accessor]
-            was_only_reg_write = len(reg_writes) == 1
+            reg_writes = reg_states[accessor][:]
 
             rust_expr = None
             bit_names = []
 
+            peripheral, reg = accessor.split('.')
+            svd_fields = self.svd[peripheral][reg]
+
+            write_mask_fieldname = None
+            if 'write_mask' in svd_fields:
+                write_mask_fieldname = 'write_mask'
+            elif 'write_enable' in svd_fields:
+                write_mask_fieldname = 'write_enable'
+
+            if write_mask_fieldname is not None:
+                # high 16 bits are write mask
+                assert svd_fields[write_mask_fieldname] == [31, 16]
+
+                # go through all the registers and add an extra reg write
+                # for each bit in the writemask
+                for existing_write in reg_writes[:]:
+                    reg_writes.append(RustRegisterWrite(
+                        peripheral, 
+                        reg,
+                        existing_write.access.rust_writemask_value(),
+                        None
+                    ))
+
+            was_only_reg_write = len(reg_writes) == 1
+
             if was_only_reg_write and reg_writes[0].whole_register:
                 rust_expr = '%s.write(|w| unsafe { w.bits(%s) })' % (
                     accessor, reg_writes[0].rust_value)
-                bit_names = reg_writes[0].bit_name
+                bit_names = [reg_writes[0].bit_name]
             else:
                 for write in reg_writes:
                     # only one whole register write is permitted
@@ -261,7 +284,9 @@ pub fn setup_clocks() {
                     accessor, rust_values)
                 bit_names = map(lambda x: x.bit_name, reg_writes)
 
-            bit_names_comment = ', '.join (map(lambda x: x or '[unknown bitfield]', bit_names))
+            bit_names_comment = ', '.join (filter(lambda x: x is not None, bit_names))
+            if len(bit_names_comment) > 72:
+                bit_names_comment = ',\n    // '.join (filter(lambda x: x is not None, bit_names))
 
             r += '    // %s\n' % bit_names_comment
             r += '    %s;\n' % rust_expr
@@ -433,7 +458,7 @@ def main():
     with open('testout.txt', 'w') as f:
         f.write(cm.save_dump())
 
-    # print cm.gen_loader()
+    print cm.gen_loader()
 
 if __name__ == '__main__':
     main()
