@@ -1,5 +1,5 @@
 run on Cortex M0
-gate big core off
+gate little core 0 off
 
 disable most power domains
 

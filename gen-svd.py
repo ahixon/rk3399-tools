@@ -6,6 +6,7 @@ import codecs
 import sys
 import os
 import json
+import pycparser
 
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
@@ -43,6 +44,9 @@ class Builder (object):
 			# 'nvicPrioBits': 4,
 			# 'vtorPresent': 0
 			'name': 'CA7',
+			'revision': 'r0p1',
+			'endian': 'little',
+			'vendorSystickConfig': 0,
 			'mpuPresent': 1,
 			'fpuPresent': 1,
 			'icachePresent': 1,
@@ -91,6 +95,33 @@ class Builder (object):
 			'resetMask': '0xFFFFFFFF' # reset value applies all bits
 		}
 
+		self.peripherals_from_structs = {
+			'PMUSGRF': {
+				'struct': 'data/pmusgrf_struct.c',
+				'registers': 'data/pmusgrf_registers.txt'
+			}
+		}
+
+		self.peripheral_registers_arrayable = {
+			'RKI2C' : {
+				'RKI2C_RXDATA\d+':	{
+					'name': 'RKI2C_RXDATA%s',
+					'description': 'I2C rx data register n',
+					'bits': [
+						BitAccess(bit_range=(31, 0), description='32-byte received data', access_policy='RO')
+					]
+				},
+
+				'RKI2C_TXDATA\d+': {
+					'name': 'RKI2C_TXDATA%s',
+					'description': 'I2C tx data register n',
+					'bits': [
+						BitAccess(bit_range=(31, 0), description='32-byte data to transmit', access_policy='RW')
+					]
+				}
+			}
+		}
+
 		self.peripheral_registers = {}
 
 		# these are MULTIPLEXED via the Interrupt Arbitrator INT_ARBx
@@ -104,6 +135,268 @@ class Builder (object):
 
 		self.load_datasheet ()
 		self.load_map ()
+
+		self.load_structs()
+		self.merge_blocks_into_arrays ()
+
+	def parse_struct(self, fname):
+		structs = {}
+		ast = pycparser.parse_file(fname)
+		for toplevel_child in ast.ext:
+			if isinstance(toplevel_child.type, pycparser.c_ast.Struct):
+				struct_offsets = {}
+				byte_offset = 0
+
+				# have the struct
+				struct = toplevel_child.type
+				for child in struct.decls:
+					name = child.name
+
+					child_size = 0
+					if isinstance(child.type, pycparser.c_ast.TypeDecl):
+						# single instance, just add by name
+						typenode = child.type.type
+						assert typenode.names[0] == 'u32'
+						child_size = 4
+
+						struct_offsets[name] = byte_offset
+					elif isinstance(child.type, pycparser.c_ast.ArrayDecl):
+						# also need to emit one register for each array entry
+						# UNLESS it's "reserved"
+
+						arraynode = child.type
+						typenode = arraynode.type.type
+						assert typenode.names[0] == 'u32'
+
+						value = arraynode.dim.value
+						if value.lower().startswith('0x'):
+							value = int(value[2:], 16)
+						else:
+							value = int(value)
+
+						child_size = 4 * value
+
+						array_item_offset = 0
+						if not name.startswith('reserved'):
+							# generate individual register per array item
+							for i in xrange(value):
+								struct_offsets[name + str(i)] = byte_offset + (array_item_offset)
+								array_item_offset += 4
+						
+					else:
+						assert False
+					
+					byte_offset += child_size
+
+				structs[toplevel_child.name] = struct_offsets
+
+		assert len(structs) == 1
+		return structs.values()[0]
+
+	def parse_register_textfile(self, registers, reginfo):
+		def assign_split_withdefault(x):
+			p = x.split('=', 1)
+			if len(p) == 1:
+				return (p[0], None)
+			else:
+				return p
+
+		reg_struct_decl = None
+		reg_desc = None
+		reg_name = None
+		reg_enum = {}
+		reg_params = {}
+		reg_bit_from = None
+		reg_bit_to = None
+
+		for line in reginfo:
+			line = line.strip(' ').rstrip('\n')
+			if not line:
+				continue
+
+			if line.startswith('//'):
+				# skip comments
+				continue
+
+			if line.startswith('\t\t'):
+				# enum value for register
+				line = line.strip()
+				val, desc = map(str.strip, line.split(':'))
+				reg_enum[val] = desc
+
+				continue
+
+			if line.startswith('\t'):
+				line = line.strip()
+
+				# register description or name
+				if reg_name is None:
+					reg_name = line
+				else:
+					reg_desc = line
+
+				continue			
+
+			m = re.match(r'(\w+)(\[(\d+)(:(\d+))?\])?\s*(.*)?', line)
+			if m:
+				if reg_name:
+					# new bitaccess
+					if reg_bit_to == None:
+						bitrange = (int(reg_bit_from), int(reg_bit_from))
+					else:
+						bitrange = (int(reg_bit_from), int(reg_bit_to))
+
+					access = 'RW'
+
+					if 'w' in reg_params:
+						access = 'WO'
+
+					reset_value = None
+					if 'default' in reg_params:
+						reset_value = reg_params['default']
+
+					if 'reset' in reg_params:
+						if reset_value:
+							print 'WARNING: both default and reset given for', reg_name
+
+						reset_value = reg_params['reset']
+
+					# use name as default description
+					if not reg_desc:
+						reg_desc = reg_name
+
+					ba = BitAccess(
+						bit_range=bitrange,
+						description=reg_desc,
+						access_policy=access)
+					if reset_value:
+						if reset_value.startswith('0x'):
+							ba.reset_value = int(reset_value[2:], 16)
+						else:
+							ba.reset_value = int(reset_value)
+					ba.name = reg_name
+
+					registers[reg_struct_decl].bits.append(ba)
+
+				reg_struct_decl, _, bit_from, _, bit_to, params = m.groups()
+				# print m.groups()
+
+				if params:
+					params = dict(map(assign_split_withdefault, params.split(' ')))
+				else:
+					params = {}
+
+				if reg_struct_decl not in registers:
+					print 'Error: field', reg_struct_decl, 'not in struct'
+					sys.exit(1)
+
+				# reset for new one
+				reg_desc = None
+				reg_name = None
+				reg_enum = {}
+				reg_params = params
+				reg_offset = registers[reg_struct_decl]
+				reg_bit_from = bit_from
+				reg_bit_to = bit_to
+			else:
+				print 'WARNING: invalid line', line
+
+		# and last
+		if reg_name:
+			# new bitaccess
+			if reg_bit_to == None:
+				bitrange = (int(reg_bit_from), int(reg_bit_from))
+			else:
+				bitrange = (int(reg_bit_from), int(reg_bit_to))
+
+			access = 'RW'
+
+			if 'w' in reg_params:
+				access = 'WO'
+
+			reset_value = None
+			if 'default' in reg_params:
+				reset_value = reg_params['default']
+
+			if 'reset' in reg_params:
+				if reset_value:
+					print 'WARNING: both default and reset given for', reg_name
+
+				reset_value = reg_params['reset']
+
+			# use name as default description
+			if not reg_desc:
+				reg_desc = reg_name
+
+			ba = BitAccess(
+				bit_range=bitrange,
+				description=reg_desc,
+				access_policy=access)
+			if reset_value:
+				if reset_value.startswith('0x'):
+					ba.reset_value = int(reset_value[2:], 16)
+				else:
+					ba.reset_value = int(reset_value)
+			ba.name = reg_name
+
+			registers[reg_struct_decl].bits.append(ba)
+
+
+	def load_structs(self):
+		for (per_for_struct, info) in self.peripherals_from_structs.iteritems():
+			# hash from reg -> offset
+			struct = self.parse_struct(info['struct'])
+
+			# convert struct to registers
+			registers = {}
+			for field, offset in struct.iteritems():
+				newr = Register (field)
+				newr.bits = []
+				newr.address_offsets = [offset]
+				newr.description = field # FIXME: nicer names :)
+				newr.size = 'W'
+				#newr.reset_value = reg_params['reset']
+				# TODO: give a reset value later, but only
+				# if we know all the reset values for each bit
+
+				registers[field] = newr
+
+			with open(info['registers'], 'r') as f:
+				self.parse_register_textfile(registers, f)
+
+
+			# conver to list
+			registers = registers.values()
+			for reg in registers:
+				reset_value = 0
+				unset = range(32)
+				for bit in reg.bits:
+					s = list(sorted(bit.bit_range))
+					# print bit.name, s
+
+					for i in xrange(s[0], s[1] + 1):
+						unset[i] = None
+
+					if not bit.reset_value:
+						print 'WARNING: ', bit.name, 'has no reset value; assuming 0'
+						bit.reset_value = 0
+
+					reset_value |= bit.reset_value << s[0]
+
+				print reg, unset
+				have_unknown = any(unset)
+				if have_unknown:
+					print "WARNING: don't fully know register", reg
+					print 'Pretending reset value is 0'
+					reg.reset_value = 0
+				else:
+					print 'calculated reset value for', reg
+					reg.reset_value = reset_value
+
+
+			# add registers and bit accesses to peripheral!
+			self.peripheral_registers[per_for_struct] = registers
+			# print self.peripheral_registers
 
 	def dump_fields (self):
 		with open ('data/fields.json', 'wb') as f:
@@ -159,7 +452,7 @@ class Builder (object):
 	def load_datasheet (self):
 		for i in [1, 2]:
 			f = open ('data/rk3399-part%d.xml' % i, 'rb')
-			self.p.parse (f, 'Cortex-M0')
+			self.p.parse (f)
 			f.close()
 
 		self.p.check()
@@ -225,6 +518,44 @@ class Builder (object):
 
 					# and remove the old
 					self.peripheral_registers[r.name.split('_')[0]].remove(existing)
+
+	def merge_blocks_into_arrays (self):
+		for groupname in self.peripheral_registers_arrayable:
+			if groupname not in self.peripheral_registers:
+				print 'WARNING: have array access defined on peripheral', groupname, 'but not in datasheet?'
+				continue
+
+			transformations = self.peripheral_registers_arrayable[groupname]
+			for transform in transformations:
+				replacement_info = transformations[transform]
+
+				# find out the keys of the registers we're removing for this transformation
+				to_remove = filter (lambda x: x if re.match(transform, x.name) else None, self.peripheral_registers[groupname])
+				# print to_remove
+
+				# ensure all the right size
+				for reg in to_remove:
+					assert self.size_to_bits[reg.size] == 32
+
+				dim = len(to_remove)
+				print 'Converted %d registers to array using %s' % (dim, transform)
+
+				# keep the first one to use as the "array register", and remove the others
+				base = to_remove[0]
+				for r in to_remove[1:]:
+					self.peripheral_registers[groupname].remove(r)
+
+				# update in-place to use the generic array data
+				base.name = replacement_info['name']
+				base.description = replacement_info['description']
+				base.bits = replacement_info['bits']
+
+				base.dim = dim
+
+				# probably optional, but hey
+				base.dimIndex = '0-%s' % (dim - 1)
+				base.dimIncrement = 32 // 8
+
 
 	def find_and_update_from_register (self, r, searchname=None):
 		if not searchname:
@@ -463,6 +794,11 @@ class Builder (object):
 
 					ET.SubElement (register_xml, 'resetValue').text = hex(reg.reset_value)
 
+					if reg.dim is not None:
+						ET.SubElement (register_xml, 'dim').text = str(reg.dim)
+						ET.SubElement (register_xml, 'dimIndex').text = reg.dimIndex
+						ET.SubElement (register_xml, 'dimIncrement').text = str(reg.dimIncrement)
+
 					# register size dependent
 					# FIXME: svd-parser assumes this field may be at most 32-bits
 					# and.. it shall be so :(
@@ -474,31 +810,37 @@ class Builder (object):
 					fields_xml = ET.SubElement (register_xml, 'fields')
 
 					for bit in reg.bits:
-						if '\n' in bit.description:
-							name, desc = bit.description.split('\n', 1)
-						else:
-							# FIXME: svd-parser assumption may also apply to this field?
-							name, desc = (bit.description, '')
-
-						if ' ' in name:
-							# no name; copy name from register
-							# but ONLY if it's the only one
-							if len(reg.bits) == 1:
-								desc = name
-								name = reg.name
+						if 'name' not in bit.__dict__:
+							if '\n' in bit.description:
+								name, desc = bit.description.split('\n', 1)
 							else:
-								if bit.description in self.field_names:
-									name = self.field_names[bit.description]
+								# FIXME: svd-parser assumption may also apply to this field?
+								name, desc = (bit.description, '')
+
+							if ' ' in name:
+								# no name; copy name from register
+								# but ONLY if it's the only one
+								if len(reg.bits) == 1:
+									desc = name
+									name = reg.name
+
+									# to handle arrays
+									if '%s' in name:
+										name = name.replace('%s', '')
 								else:
-									print 'there are %d other bits' % len(reg.bits)
-									print "unknown name for this register:"
-									print bit.description
-									name = raw_input("name for register? ")
-									self.field_names[bit.description] = name
-									self.dump_fields()
+									if bit.description in self.field_names:
+										name = self.field_names[bit.description]
+									else:
+										print 'there are %d other bits' % len(reg.bits)
+										print "unknown name for this register:"
+										print bit.description
+										name = raw_input("name for register? ")
+										self.field_names[bit.description] = name
+										self.dump_fields()
 
-								desc = bit.description
-
+									desc = bit.description
+						else:
+							name = bit.name
 
 						if not desc:
 							desc = bit.description

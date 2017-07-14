@@ -12,11 +12,11 @@ class Interrupt(object):
 		self.trig = None
 
 class BitAccess(object):
-	def __init__(self):
-		self.bit_range = (0, 0)
-		self.access_policy = None
+	def __init__(self, bit_range=(0, 0), description=None, access_policy=None):
+		self.bit_range = bit_range
+		self.access_policy = access_policy
 		self.reset_value = None
-		self.description = None
+		self.description = description
 		self.volatile = None
 
 	def __repr__ (self):
@@ -33,6 +33,7 @@ class Register(object):
 		# set in svd script
 		self.size = None
 		self.reset_value = None
+		self.dim = None
 
 	def __repr__ (self):
 		return self.name
@@ -51,7 +52,7 @@ class Parser (object):
 		self.registers = []
 		self.register_summaries = []
 
-	def parse (self, filelike, interruptsrc):
+	def parse (self, filelike):
 		current_register = None
 		current_register_summary = None
 		sum_desc_col = 0
