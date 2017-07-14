@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from parse_rk_trm import *
 import lxml.etree as ET
 import re
@@ -28,32 +29,51 @@ class PeripheralMap (object):
 		return '%s@0x%8x' % (self.name, self.base_addr)
 
 class Builder (object):
-	def __init__ (self):
+	def __init__ (self, name):
 		self.p = Parser()
-		# self.name = 'M0'
-		self.name = 'AP'
+		self.name = name
 		self.map = {}
 		self.addrmap = {}
 		self.addrmap_noremap = {}
-		self.cpu = {
-			# 'name': 'CM0',
-			# 'mpuPresent': 0,
-			# 'fpuPresent': 0,
-			# 'icachePresent': 0,
-			# 'dcachePresent': 0,
-			# 'nvicPrioBits': 4,
-			# 'vtorPresent': 0
-			'name': 'CA7',
-			'revision': 'r0p1',
-			'endian': 'little',
-			'vendorSystickConfig': 0,
-			'mpuPresent': 1,
-			'fpuPresent': 1,
-			'icachePresent': 1,
-			'dcachePresent': 1,
-			'nvicPrioBits': 4,
-			'vtorPresent': 1
+
+		self.systems = {
+			'M0': {
+				'buswidth': 32,	# ?
+				'interrupts': 32,
+				'cpu': {
+					'name': 'CM0',
+					'revision': 'r0p1',
+					'endian': 'little',
+					'vendorSystickConfig': 0,
+					'mpuPresent': 0,
+					'fpuPresent': 0,
+					'icachePresent': 0,
+					'dcachePresent': 0,
+					'nvicPrioBits': 4,
+					'vtorPresent': 0
+				}
+			},
+
+			'AP': {
+				'buswidth': 64,
+				'interrupts': 0,
+				'cpu': {
+					'name': 'CA7',
+					'revision': 'r0p1',
+					'endian': 'little',
+					'vendorSystickConfig': 0,
+					'mpuPresent': 1,
+					'fpuPresent': 1,
+					'icachePresent': 1,
+					'dcachePresent': 1,
+					'nvicPrioBits': 4,
+					'vtorPresent': 1
+				}
+			}
 		}
+
+		assert name in self.systems
+		self.cpu = self.systems[name]['cpu']
 
 		self.size_to_bits = {
 			'W': 32,
@@ -87,8 +107,7 @@ class Builder (object):
 		self.bus = {
 			'addressUnitBits': 8,
 			
-			# 'width': 32,
-			'width': 64,
+			'width': self.systems[name]['buswidth'],
 
 			'size': 32, # assume 32-bit registers by default
 			'resetValue': 0x0, # default reset
@@ -131,7 +150,7 @@ class Builder (object):
 		# see Part 1 Datasheet, p498 
 		#
 		# actually only 18 on PERILPM0
-		self.interrupts = 32
+		self.interrupts = self.systems[name]['interrupts']
 
 		self.load_datasheet ()
 		self.load_map ()
@@ -919,6 +938,10 @@ class Builder (object):
 		return ET.tostring (root, pretty_print=True)
 
 if __name__ == '__main__':
-	b = Builder ()
-	with codecs.open ('rk3399-ap.svd', 'w', 'utf-8') as f:
+	if len(sys.argv) != 3:
+		sys.stderr.write('usage: %s <ap|m0> <target.svd>\n' % sys.argv[0])
+		sys.exit(1)
+
+	b = Builder (sys.argv[1].upper())
+	with codecs.open (sys.argv[2], 'w', 'utf-8') as f:
 		f.write (b.export ())
