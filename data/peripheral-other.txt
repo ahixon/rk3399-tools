@@ -1,0 +1,32 @@
+
+===
+
+The channel 0 PHY base address is 0xffa82000 (DENALI_PHY_)
+The channel 1 PHY base address is 0xffa8a000 (DENALI_PHY_)
+
+
+HDMI
+
+The address offset of the HDMI TX is 0xff980000,it contains 16 address section. The offset
+of the table of Register Summary must multiple with 4 when software configure it。Like the
+Interrupt registers,its base address is 0x0100.If we want to configure it, its real address is
+0xff980000+0x0100*4.
+
+
+SRAM		FFFF_0000 -> FFFF_FFFF (after remap)
+			FF8C_0000 -> FF8E_FFFF (before remap)
+
+Reserved	FE00_0000
+Reserved	FEA0_0000
+Reserved	FED0_0000
+Reserved	FF17_0000
+Reserved	FF21_0000
+Reserved	FF27_0000
+Reserved	FF34_0000
+Reserved	FF3A_0000
+Reserved	FF3F_0000
+Reserved	FF43_0000
+Reserved	FF64_0000
+Reserved	FF6C_0000
+Reserved	FF6F_0000
+Reserved	FF74_0000
