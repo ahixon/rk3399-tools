@@ -1,9 +1,11 @@
 # when reading map, we will subtract
 # CORE_PERIPHERAL_BASE from addresses
-# and add CORTEX_M0 base
 CORE_PERIPHERAL_BASE	F800_0000
-#MCU_PERIPHERAL_BASE	0x40000000
-MCU_PERIPHERAL_BASE	F800_0000
+
+# and will add back one of these,
+# depending on the specified target
+MCU_PERIPHERAL_BASE_M0	0x40000000
+MCU_PERIPHERAL_BASE_AP	F800_0000
 
 CIC	FF62_0000
 I2S

@@ -639,7 +639,8 @@ class Builder (object):
 
 	def load_map (self):
 		system_peripheral_base_key = 'CORE_PERIPHERAL_BASE'
-		mcu_peripheral_base_key = 'MCU_PERIPHERAL_BASE'
+		mcu_peripheral_base_prefix = 'MCU_PERIPHERAL_BASE'
+		mcu_peripheral_base_key = '%s_%s' % (mcu_peripheral_base_prefix, self.name)
 
 		with open ('data/peripheral-map.txt', 'r') as f:
 			current_peripheral = None
@@ -664,7 +665,7 @@ class Builder (object):
 					addr = original_addr
 
 					# remap to MCU
-					if key != system_peripheral_base_key and key != mcu_peripheral_base_key:
+					if key != system_peripheral_base_key and not key.startswith(mcu_peripheral_base_prefix):
 						addr -= self.addrmap[system_peripheral_base_key]
 						if addr < 0:
 							print 'ERROR:', key, 'is below peripheral base?', addr, self.addrmap[system_peripheral_base_key]
@@ -695,7 +696,7 @@ class Builder (object):
 						original_addr = addr
 
 						# remap to MCU
-						if key != system_peripheral_base_key and key != mcu_peripheral_base_key:
+						if key != system_peripheral_base_key and not key.startswith(mcu_peripheral_base_prefix):
 							addr -= self.addrmap[system_peripheral_base_key]
 							if addr < 0:
 								print 'ERROR:', key, 'is below peripheral base?'
