@@ -98,7 +98,7 @@ class Parser (object):
 
 				if elem.attrib['font'] == '14':
 					header_text = elem.find('b').text.strip()
-					# print 'ht', header_text
+					# print('ht', header_text)
 					if 'Detail Register Description' in header_text:
 						consume_stack = []
 						parsing = 'detail-reg'
@@ -110,7 +110,7 @@ class Parser (object):
 						# try without heading bit
 						header_text = elem.find('b').tail
 						if header_text:
-							# print 'ht-nobold', header_text
+							# print('ht-nobold', header_text)
 							if 'Detail Register Description' in header_text:
 								consume_stack = []
 								parsing = 'detail-reg'
@@ -121,49 +121,49 @@ class Parser (object):
 							else:
 								parsing = None
 						else:
-							# print '\tno non-bold text either'
+							# print('\tno non-bold text either')
 							parsing = None
 							continue
 
 				if elem.attrib['font'] == '5':
 					header_text = elem.find('b').text.strip()
 					if 'register' in header_text:
-						# print "PI REG GO"
+						# print("PI REG GO")
 						consume_stack = ['heading-n', 'heading-osr', 'heading-d', 'sumreg']
 						continue
 
 				if parsing == 'summary-reg':
 					if consume_stack:
 						consume = consume_stack.pop (0)
-						# print 'doing', consume
+						# print('doing', consume)
 					else:
 						consume = None
 
 					if consume == 'heading-n':
 						if elem.attrib['font'] == '3':
-							# print '\tskipping size 3 font...'
-							# print '\t', elem.text
+							# print('\tskipping size 3 font...')
+							# print('\t', elem.text)
 							if elem.find('b') is None:
 								consume_stack = ['heading-n'] + consume_stack
 								continue
 							else:
 								assert False
 
-						if elem.attrib['font'] != '5':
-							print "WARNING: skipping some register summary table"
-							print "because it doesn't match our format (font was %s)" % elem.attrib['font']
+						if elem.attrib['font'] != "5":
+							#print("WARNING: skipping some register summary table")
+							#print("because it doesn't match our format (font was %s)" % elem.attrib['font'])
 							consume_stack = []
 							continue
 
 						# assert elem.attrib['font'] == '5'
 						if elem.find('b').text.strip() != 'Name':
-							print 'WARNING: found table not in right format'
+							#print('WARNING: found table not in right format')
 							consume_stack = []
 							continue
 
 						assert len(elem.findall('b')) == 1
 					elif consume == 'heading-osr':
-						# print elem.findall('b')
+						# print(elem.findall('b'))
 						if len(elem.findall('b')) == 1:
 							headings = re.sub('\s+', ' ', elem.find('b').text).strip().split(' ')
 							if len(headings) == 2:
@@ -179,7 +179,7 @@ class Parser (object):
 							assert len(elem.findall('b')) == 3
 					elif consume == 'heading-sr':
 						if len(elem.findall('b')) == 1:
-							headings = map (str.strip, elem.find ('b').text.split(' ', 1))
+							headings = list(map (str.strip, elem.find ('b').text.split(' ', 1)))
 							assert headings == ['Size', 'Reset Value']
 						else:
 							assert len(elem.findall('b')) == 2
@@ -196,13 +196,13 @@ class Parser (object):
 							assert len(elem.findall('b')) == 1
 					elif consume == 'sumreg' or (consume == 'sumreg-d' and elem.attrib['left'] == sum_name_col):
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Name' in headings[0]:
 							consume_stack = ['heading-osr', 'heading-d', 'sumreg']
 							continue
 
 						if sum_desc_col and elem.attrib['left'] == sum_desc_col:
-							# print '\tadded to description:', elem.text.strip()
+							# print('\tadded to description:', elem.text.strip())
 							current_register_summary.description += ' ' + elem.text.strip()
 							consume_stack = ['sumreg']
 						else:
@@ -219,7 +219,7 @@ class Parser (object):
 							this_reset = None
 							this_desc = None
 
-							# print '\t', vals
+							# print('\t', vals)
 
 							for v in vals:
 								if v.startswith ('0x') and this_offset is None:
@@ -249,7 +249,7 @@ class Parser (object):
 								continue
 							elif ' ' in regname_str:
 								# for now, disallow spaces in register
-								print '\tWARNING: had space, skipping'
+								#print('\tWARNING: had space, skipping')
 								#current_register_summary.description += regname_str
 								consume_stack = ['sumreg']
 								continue
@@ -265,14 +265,14 @@ class Parser (object):
 								r.size = this_size
 
 							if this_reset:
-								# print this_reset
+								# print(this_reset)
 								assert this_reset[:2] == '0x'
 								r.reset_value = int(this_reset[2:], 16)
 
 							if this_desc:
 								r.description = this_desc.strip()
 
-							# print '\tnew register', regname_str
+							# print('\tnew register', regname_str)
 							# if regname_str == 'PMUCRU_PPLL_CON1':
 							# 	sys.exit (1)
 
@@ -293,7 +293,7 @@ class Parser (object):
 								
 					elif consume == 'sumreg-osrd':
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Name' in headings[0]:
 							assert False
 							consume_stack = ['sumreg-n', 'sumreg-osr', 'sumreg-d'] + consume_stack
@@ -301,18 +301,18 @@ class Parser (object):
 
 						if elem.attrib['left'] == sum_name_col:
 							# name clipped; go again
-							# print '\tname clipped, adding', elem.text.strip()
+							# print('\tname clipped, adding', elem.text.strip())
 							current_register_summary.name += elem.text.strip()
 							consume_stack = ['sumreg-osrd']
 							continue
 
 						elem.text = re.sub ('\s+', ' ', elem.text)
-						vals = map(str.strip, elem.text.strip().split(' ', 3))
+						vals = list(map(str.strip, elem.text.strip().split(' ', 3)))
 
-						# print '\t', vals
+						# print('\t', vals)
 						assert vals[0][:2] == '0x'
 						if vals[0].endswith ('~'):
-							# print '\trange'
+							# print('\trange')
 							summary_range = vals[0][2:-1]
 							assert len(vals) == 1 # rely 100% on next step to do this
 							consume_stack = ['sumreg-range', 'sumreg-srd']
@@ -348,7 +348,7 @@ class Parser (object):
 					elif consume == 'sumreg-range':
 						# sometimes split over 2 lines; called by sumreg-osrd
 						elem.text = re.sub ('\s+', ' ', elem.text)
-						vals = map(str.strip, elem.text.strip().split(' '))
+						vals = list(map(str.strip, elem.text.strip().split(' ')))
 						assert len(vals) == 1
 
 						assert vals[0][:2] == '0x'
@@ -357,15 +357,15 @@ class Parser (object):
 
 					elif consume == 'sumreg-srd':
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Name' in headings[0]:
 							assert False
 							consume_stack = ['sumreg-n', 'sumreg-osr', 'sumreg-d'] + consume_stack
 							continue
 
 						elem.text = re.sub ('\s+', ' ', elem.text)
-						vals = map(str.strip, elem.text.strip().split(' ', 2))
-						# print '\tsrd', vals
+						vals = list(map(str.strip, elem.text.strip().split(' ', 2)))
+						# print('\tsrd', vals)
 
 						if vals[0].startswith ('~0x'):
 							# range from last field
@@ -399,15 +399,15 @@ class Parser (object):
 							consume_stack = ['sumreg-rd']
 					elif consume == 'sumreg-rd':
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Name' in headings[0]:
 							assert False
 							consume_stack = ['sumreg-n', 'sumreg-osr', 'sumreg-d'] + consume_stack
 							continue
 
 						elem.text = re.sub ('\s+', ' ', elem.text)
-						vals = map(str.strip, elem.text.strip().split(' ', 1))
-						# print '\t', vals
+						vals = list(map(str.strip, elem.text.strip().split(' ', 1)))
+						# print('\t', vals)
 						if vals[0]:
 							# the HDMI fields are blank?
 							assert vals[0][:2] == '0x'
@@ -423,17 +423,17 @@ class Parser (object):
 							consume_stack = ['sumreg-d']
 					elif consume == 'sumreg-d':
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Name' in headings[0]:
 							assert False
 							consume_stack = ['sumreg-n', 'sumreg-osr', 'sumreg-d'] + consume_stack
 							continue
 
 						if elem.find('b') is not None:
-							# print 'UHMMM', elem.find('b').text
+							# print('UHMMM', elem.find('b').text)
 							assert False
 
-						# print '\tadded desc', elem.text.strip()
+						# print('\tadded desc', elem.text.strip())
 						current_register_summary.description = elem.text.strip()
 						sum_desc_col = elem.attrib['left']
 						consume_stack = ['sumreg']
@@ -448,7 +448,7 @@ class Parser (object):
 						if regname == 'Bit':
 							# carry over from previous page
 							# should just be BAR for this text element
-							headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+							headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 							if len(headings) == 1:
 								consume_stack = ['ar', 'd']
 							elif len(headings) == 2:
@@ -468,7 +468,7 @@ class Parser (object):
 
 						current_register = Register (regname)
 						self.registers.append (current_register)
-						# print 'new header at', regname, 'page', pagenum
+						# print('new header at', regname, 'page', pagenum)
 						# if regname == 'CRU_SOFTRST_CON1':
 						# 	sys.exit (1)
 
@@ -479,7 +479,7 @@ class Parser (object):
 							toregnum = int(toreg.strip()[-1])
 
 							regcount = toregnum - fromregnum + 1
-							# print "\thave", regcount, "registers"
+							# print("\thave", regcount, "registers")
 
 						consume_stack = ['addr'] * regcount
 						consume_stack += ['desc', 'bar', 'd', 'bits']
@@ -487,16 +487,16 @@ class Parser (object):
 					
 					if len(consume_stack):
 						consume = consume_stack.pop(0)
-						# print 'consuming', consume
+						# print('consuming', consume)
 					else:
 						consume = None
 
 					if consume == 'addr':
 						if elem.text is None or not elem.text.strip() or 'Operational Base' not in elem.text:
-							print 'elem text is', elem.text
-							print 'on page', pagenum
-							print
-							print 'WARNING: assuming what follows is not register set'
+							#print('elem text is', elem.text)
+							#print('on page', pagenum)
+							#print
+							#print('WARNING: assuming what follows is not register set')
 							consume_stack = []
 							current_register = None
 							parsing = None
@@ -509,12 +509,12 @@ class Parser (object):
 								# maybe range
 								m = re.search (r'Operational Base \+ offset \(0x([A-Fa-f0-9]+)~0x([A-Fa-f0-9]+)\)', elem.text)
 								if not m:
-									print "elem text is", elem.text
+									print("elem text is", elem.text)
 									assert m
 
 								# FIXME: currently assumes access via word (I haven't seen an exception yet but might be wrong)
-								for i in xrange (int(m.group(1), 16), int(m.group(2), 16) + 4, 4):
-									# print hex(i)
+								for i in range (int(m.group(1), 16), int(m.group(2), 16) + 4, 4):
+									# print(hex(i))
 									current_register.address_offsets.append (i)
 
 								continue
@@ -525,7 +525,7 @@ class Parser (object):
 						current_register.description = elem.text.strip()
 					elif consume == 'bar':
 						# skip bit attr reset value description fields
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 
 						if headings == ['Bit', 'Attr', 'Reset Value']:
 							pass
@@ -536,7 +536,7 @@ class Parser (object):
 						else:
 							# wtf
 							if headings:
-								maybe_headings = map(str.strip, re.sub('\s+', ' ', headings[0]).split(' ', 2))
+								maybe_headings = list(map(str.strip, re.sub('\s+', ' ', headings[0]).split(' ', 2)))
 								if maybe_headings == ['Bit', 'Attr', 'Reset Value']:
 									pass
 								elif maybe_headings == ['Bit']:
@@ -544,34 +544,34 @@ class Parser (object):
 								elif maybe_headings == ['Bit', 'Attr']:
 									consume_stack = ['r'] + consume_stack
 								else:
-									print 'uh oh', headings
-									print elem.text
+									print('uh oh', headings)
+									print(elem.text)
 									assert False
 							else:
 								# do again, wasn't a heading, but a description continuation
 								current_register.description += '\n' + elem.text
 								consume_stack = ['bar'] + consume_stack
 					elif consume == 'ar':
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if headings == ['Attr', 'Reset Value']:
 							pass
 						elif headings == ['Reset Value']:
 							consume_stack = ['r'] + consume_stack
 						else:
-							print 'uh oh', headings
+							print('uh oh', headings)
 							assert False
 					elif consume == 'r':
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if headings == ['Reset Value']:
 							pass
 						else:
-							print 'uh oh', headings
+							print('uh oh', headings)
 							assert False
 					elif consume == 'd':
 						assert elem.find('b').text.strip() == 'Description'
 					elif consume == 'bits' and current_register:
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Bit' in headings[0]:
 							consume_stack = ['ar', 'd', 'bits']
 							continue
@@ -587,7 +587,7 @@ class Parser (object):
 
 						if elem.attrib['left'] == desc_col:
 							# actually just an extension of description
-							# print '\tcontinued desc', elem.text
+							# print('\tcontinued desc', elem.text)
 							current_bits.description += '\n' + elem.text.strip()
 							consume_stack = ['bits']
 						else:
@@ -612,7 +612,7 @@ class Parser (object):
 							# 	continue
 
 							# and add it ;)
-							# print 'new bitaccess on', elem.text
+							# print('new bitaccess on', elem.text)
 							current_register.bits.append (current_bits)
 
 							if v:
@@ -626,7 +626,7 @@ class Parser (object):
 								elif attr == 'RC':
 									attr = 'RC'
 
-								# print attr
+								# print(attr)
 								assert attr in ['RW', 'RO', 'WO', 'W1C', 'RC']
 								current_bits.access_policy = attr
 
@@ -648,11 +648,11 @@ class Parser (object):
 									consume_stack = ['bits-rd']
 							else:
 								# need attr, resetval, desc
-								# print '\tneed ard'
+								# print('\tneed ard')
 								consume_stack = ['bits-ard']
 					elif consume == 'bits-ard':
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Bit' in headings[0]:
 							consume_stack = ['ar', 'd', 'bits']
 							continue
@@ -678,7 +678,7 @@ class Parser (object):
 								consume_stack = ['bits-ard']
 								continue
 
-						# print attr
+						# print(attr)
 						assert attr in ['RW', 'RO', 'WO', 'W1C', 'RC']
 						current_bits.access_policy = attr
 
@@ -697,11 +697,11 @@ class Parser (object):
 							else:
 								consume_stack = ['bits-desc']
 						else:
-							# print '\tneed rd'
+							# print('\tneed rd')
 							consume_stack = ['bits-rd']
 					elif consume == 'bits-rd':
 						# guard
-						headings = map (lambda x: x.text.strip(), elem.findall ('b'))
+						headings = list(map (lambda x: x.text.strip(), elem.findall ('b')))
 						if len(headings) == 1 and 'Bit' in headings[0]:
 							consume_stack = ['ar', 'd', 'bits']
 							continue
@@ -747,7 +747,7 @@ class Parser (object):
 						else:
 							current_bits.description = elem.text.strip()
 
-						# print '\thad desc', elem.text
+						# print('\thad desc', elem.text)
 						consume_stack = ['bits']
 
 	def check (self):
@@ -767,14 +767,14 @@ class Parser (object):
 			try:
 				widths[regsum.name] = size_to_bits[regsum.size]
 			except KeyError:
-				print 'no size for', regsum.name, 'with', regsum.size
+				print('no size for', regsum.name, 'with', regsum.size)
 
 				# assume 32-bit?
 				raise
 
 		# sanity check the register bit accesses
 		for reg in self.registers:
-			# print reg.name
+			# print(reg.name)
 
 			# starts top to bottom
 			# avoid typos and range registers
@@ -786,7 +786,7 @@ class Parser (object):
 				reg.name = 'EFUSE_STROBE_FINISH_CTRL'
 
 			if not reg.bits:
-				print "WARNING: no bits for", reg
+				#print("WARNING: no bits for", reg)
 				continue
 
 			if reg.name == 'UART_MCR':
@@ -805,17 +805,17 @@ modem or data set that the UART is ready to exchange data."""
 
 			last_bit = widths[reg.name]
 			for ba in reg.bits:
-				# print '\t', ba.description.split('\n')[0]
+				# print('\t', ba.description.split('\n')[0])
 
 				if ba.bit_range[0] != (last_bit - 1):
-					print ba, 'started in wrong place; expected', (last_bit - 1)
+					print(ba, 'started in wrong place; expected', (last_bit - 1))
 					assert False
 
 				last_bit = ba.bit_range[1]
 				assert ba.bit_range[0] >= ba.bit_range[1]
 
 			if last_bit != 0:
-				print 'um, ended on bit', last_bit
+				print('um, ended on bit', last_bit)
 				assert last_bit == 0
 
 		return True

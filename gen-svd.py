@@ -198,7 +198,7 @@ class Builder (object):
 						array_item_offset = 0
 						if not name.startswith('reserved'):
 							# generate individual register per array item
-							for i in xrange(value):
+							for i in range(value):
 								struct_offsets[name + str(i)] = byte_offset + (array_item_offset)
 								array_item_offset += 4
 						
@@ -210,7 +210,7 @@ class Builder (object):
 				structs[toplevel_child.name] = struct_offsets
 
 		assert len(structs) == 1
-		return structs.values()[0]
+		return list(structs.values())[0]
 
 	def parse_register_textfile(self, registers, reginfo):
 		def assign_split_withdefault(x):
@@ -275,8 +275,8 @@ class Builder (object):
 						reset_value = reg_params['default']
 
 					if 'reset' in reg_params:
-						if reset_value:
-							print 'WARNING: both default and reset given for', reg_name
+						#if reset_value:
+							#print('WARNING: both default and reset given for', reg_name)
 
 						reset_value = reg_params['reset']
 
@@ -298,7 +298,7 @@ class Builder (object):
 					registers[reg_struct_decl].bits.append(ba)
 
 				reg_struct_decl, _, bit_from, _, bit_to, params = m.groups()
-				# print m.groups()
+				# print(m.groups())
 
 				if params:
 					params = dict(map(assign_split_withdefault, params.split(' ')))
@@ -306,7 +306,7 @@ class Builder (object):
 					params = {}
 
 				if reg_struct_decl not in registers:
-					print 'Error: field', reg_struct_decl, 'not in struct'
+					#print('Error: field', reg_struct_decl, 'not in struct')
 					sys.exit(1)
 
 				# reset for new one
@@ -317,8 +317,8 @@ class Builder (object):
 				reg_offset = registers[reg_struct_decl]
 				reg_bit_from = bit_from
 				reg_bit_to = bit_to
-			else:
-				print 'WARNING: invalid line', line
+			#else:
+				#print('WARNING: invalid line', line)
 
 		# and last
 		if reg_name:
@@ -338,8 +338,8 @@ class Builder (object):
 				reset_value = reg_params['default']
 
 			if 'reset' in reg_params:
-				if reset_value:
-					print 'WARNING: both default and reset given for', reg_name
+				#if reset_value:
+					#print('WARNING: both default and reset given for', reg_name)
 
 				reset_value = reg_params['reset']
 
@@ -362,13 +362,13 @@ class Builder (object):
 
 
 	def load_structs(self):
-		for (per_for_struct, info) in self.peripherals_from_structs.iteritems():
+		for (per_for_struct, info) in self.peripherals_from_structs.items():
 			# hash from reg -> offset
 			struct = self.parse_struct(info['struct'])
 
 			# convert struct to registers
 			registers = {}
-			for field, offset in struct.iteritems():
+			for field, offset in struct.items():
 				newr = Register (field)
 				newr.bits = []
 				newr.address_offsets = [offset]
@@ -388,34 +388,34 @@ class Builder (object):
 			registers = registers.values()
 			for reg in registers:
 				reset_value = 0
-				unset = range(32)
+				unset = list(range(32))
 				for bit in reg.bits:
 					s = list(sorted(bit.bit_range))
-					# print bit.name, s
+					# print(bit.name, s)
 
-					for i in xrange(s[0], s[1] + 1):
+					for i in range(s[0], s[1] + 1):
 						unset[i] = None
 
 					if not bit.reset_value:
-						print 'WARNING: ', bit.name, 'has no reset value; assuming 0'
+						#print('WARNING: ', bit.name, 'has no reset value; assuming 0')
 						bit.reset_value = 0
 
 					reset_value |= bit.reset_value << s[0]
 
-				print reg, unset
+				#print(reg, unset)
 				have_unknown = any(unset)
 				if have_unknown:
-					print "WARNING: don't fully know register", reg
-					print 'Pretending reset value is 0'
+					#print("WARNING: don't fully know register", reg)
+					#print('Pretending reset value is 0')
 					reg.reset_value = 0
 				else:
-					print 'calculated reset value for', reg
+					#print('calculated reset value for', reg)
 					reg.reset_value = reset_value
 
 
 			# add registers and bit accesses to peripheral!
 			self.peripheral_registers[per_for_struct] = registers
-			# print self.peripheral_registers
+			# print(self.peripheral_registers)
 
 	def dump_fields (self):
 		with open ('data/fields.json', 'wb') as f:
@@ -432,7 +432,7 @@ class Builder (object):
 		tok = {}
 		for v in self.field_names.values():
 			if v in tok:
-				print v, 'already defined in field map!'
+				#print(v, 'already defined in field map!')
 				sys.exit (1)
 
 			tok[v] = True
@@ -443,9 +443,9 @@ class Builder (object):
 
 		r = Register (name)
 
-		if name == 'PMUCRU_PPLL_CON0':
-			print '\tcopying %s to %s' % (regsum.name, name)
-			print 'desc is', regsum.description
+		#if name == 'PMUCRU_PPLL_CON0':
+			#print("\tcopying %s to %s" % (regsum.name, name))
+			#print("desc is", regsum.description)
 
 		r.size = regsum.size
 		r.reset_value = regsum.reset_value
@@ -456,7 +456,7 @@ class Builder (object):
 		# let's assume inclusive
 		if regfrom != regto:
 			assert r.size == 'W'
-			for i in xrange (regfrom, regto + 4, 4):
+			for i in range (regfrom, regto + 4, 4):
 				r.address_offsets.append (i)
 		else:
 			r.address_offsets.append (regfrom)
@@ -464,7 +464,7 @@ class Builder (object):
 		return r
 
 	def name_range (self, name):
-		namefrom, nameto = map(lambda x: int(re.match ('.*(\d+)', x).group(1)), name.split('~'))
+		namefrom, nameto = list(map(lambda x: int(re.match ('.*(\d+)', x).group(1)), name.split('~')))
 		namebase = re.match ('(.*)\d+~.*', name).group(1)
 		return (namefrom, namefrom, namebase)
 
@@ -490,13 +490,13 @@ class Builder (object):
 
 				# again, assume inclusive
 				regoff = 0
-				for i in xrange (namefrom, nameto + 1):
+				for i in range (namefrom, nameto + 1):
 					r = self.copy_existing_reg_summary (regsum, '%s%d' % (namebase, i))
 					assert r.size == 'W'
 					r.address_offsets = [regsum.offset_range[0] + (i * 4)]
 					self.peripheral_registers[pname].append (r)	
 
-				# print self.peripheral_registers[pname]
+				# print(self.peripheral_registers[pname])
 				# sys.exit (1)
 				self.peripheral_registers[pname].append (r)
 			else:
@@ -506,12 +506,12 @@ class Builder (object):
 		# now do per-register, and get bit access
 		for r in self.p.registers:	
 			if not r.bits:
-				print r.name, 'has no bits; skipping'
+				#print(r.name, 'has no bits; skipping')
 				continue
 
 			if '~' in r.name:
 				namefrom, nameto, namebase = self.name_range (r.name)
-				for i in xrange (namefrom, nameto + 1):
+				for i in range (namefrom, nameto + 1):
 					self.find_and_update_from_register (r, '%s%d' % (namebase, i))
 			elif 'n' in r.name:
 				# same deal, basically; except we already have register offsets
@@ -541,7 +541,7 @@ class Builder (object):
 	def merge_blocks_into_arrays (self):
 		for groupname in self.peripheral_registers_arrayable:
 			if groupname not in self.peripheral_registers:
-				print 'WARNING: have array access defined on peripheral', groupname, 'but not in datasheet?'
+				#print('WARNING: have array access defined on peripheral', groupname, 'but not in datasheet?')
 				continue
 
 			transformations = self.peripheral_registers_arrayable[groupname]
@@ -549,15 +549,15 @@ class Builder (object):
 				replacement_info = transformations[transform]
 
 				# find out the keys of the registers we're removing for this transformation
-				to_remove = filter (lambda x: x if re.match(transform, x.name) else None, self.peripheral_registers[groupname])
-				# print to_remove
+				to_remove = list(filter (lambda x: x if re.match(transform, x.name) else None, self.peripheral_registers[groupname]))
+				# print(to_remove)
 
 				# ensure all the right size
 				for reg in to_remove:
 					assert self.size_to_bits[reg.size] == 32
 
 				dim = len(to_remove)
-				print 'Converted %d registers to array using %s' % (dim, transform)
+				#print('Converted %d registers to array using %s' % (dim, transform))
 
 				# keep the first one to use as the "array register", and remove the others
 				base = to_remove[0]
@@ -590,7 +590,7 @@ class Builder (object):
 				break
 
 		if existing_reg is None:
-			print 'no general map for', searchname
+			print('no general map for', searchname)
 			assert existing_reg
 
 		self.copy_from_existing_reg (r, existing_reg)
@@ -604,24 +604,24 @@ class Builder (object):
 			pass
 		else:
 			if old_reg.description and old_reg.description != new_reg.description:
-				print 'Description mismatch on', old_reg.name
+				#print('Description mismatch on', old_reg.name)
 
 				# old will have no reset_value (parse doesn't set one), but WILL have
 				# bits and description
-				print 'Register info from detail:'
-				print '\t%s' % old_reg.description
-				print
+				#print('Register info from detail:')
+				#print('\t%s' % old_reg.description)
+				#print
 
-				print 'Register info from summary:'
-				print '\t%s' % new_reg.description
+				#print('Register info from summary:')
+				#print('\t%s' % new_reg.description)
 
-				print 'WARNING: combining them...'
+				#print('WARNING: combining them...')
 				if '\n' not in old_reg.description and '\n' not in new_reg.description:
 					new_reg.description += '/' + old_reg.description
 				else:
 					new_reg.description += '\n\n' + old_reg.description
 
-				print
+				#print
 
 		# copy all bits
 		# FIXME: may need to handle ~ ranges here?
@@ -668,7 +668,7 @@ class Builder (object):
 					if key != system_peripheral_base_key and not key.startswith(mcu_peripheral_base_prefix):
 						addr -= self.addrmap[system_peripheral_base_key]
 						if addr < 0:
-							print 'ERROR:', key, 'is below peripheral base?', addr, self.addrmap[system_peripheral_base_key]
+							#print('ERROR:', key, 'is below peripheral base?', addr, self.addrmap[system_peripheral_base_key])
 							sys.exit (1)
 
 						addr += self.addrmap[mcu_peripheral_base_key]
@@ -679,7 +679,7 @@ class Builder (object):
 					self.addrmap[p.name] = addr
 					self.addrmap_noremap[p.name] = original_addr
 
-					print '\tsubperipheral', p
+					#print('\tsubperipheral', p)
 				else:
 					cmd = cmd.strip()
 
@@ -687,7 +687,7 @@ class Builder (object):
 						current_peripheral = None
 
 						# key value
-						print cmd
+						#print(cmd)
 						key, value = map(str.strip, cmd.split('\t'))
 						if key in self.map:
 							raise ValueError(key + " maps multiple times; use block instead")
@@ -699,7 +699,7 @@ class Builder (object):
 						if key != system_peripheral_base_key and not key.startswith(mcu_peripheral_base_prefix):
 							addr -= self.addrmap[system_peripheral_base_key]
 							if addr < 0:
-								print 'ERROR:', key, 'is below peripheral base?'
+								#print('ERROR:', key, 'is below peripheral base?')
 								sys.exit (1)
 
 							addr += self.addrmap[mcu_peripheral_base_key]
@@ -710,12 +710,12 @@ class Builder (object):
 						self.addrmap_noremap[key] = original_addr
 					elif cmd:
 						# mapping single peripheral to multiple devices
-						print "-- entering block '%s'" % cmd
+						#print("-- entering block '%s'" % cmd)
 						current_peripheral = cmd
 						self.map[current_peripheral] = []
 
 
-		print self.map
+		#print(self.map)
 
 	def export (self):
 		ET.register_namespace ('xs', 'http://www.w3.org/2001/XMLSchema-instance')
@@ -789,7 +789,7 @@ class Builder (object):
 				for reg in self.peripheral_registers[groupname]:
 					# FIXME: YUGE...  :(
 					if reg.size == 'DW':
-						print 'WARNING: skipping register', reg, 'because svd2rust only supports up to 32-bits'
+						#print('WARNING: skipping register', reg, 'because svd2rust only supports up to 32-bits')
 						continue
 
 					# ignore reserved registers
@@ -826,7 +826,7 @@ class Builder (object):
 					if reg.size == 'DW':
 						use_size = 'W'
 
-					ET.SubElement (register_xml, 'resetMask').text = '0x' + ('F' * (self.size_to_bits[use_size] / 4))
+					ET.SubElement (register_xml, 'resetMask').text = '0x' + ('F' * int((self.size_to_bits[use_size] / 4)))
 					fields_xml = ET.SubElement (register_xml, 'fields')
 
 					for bit in reg.bits:
@@ -851,9 +851,9 @@ class Builder (object):
 									if bit.description in self.field_names:
 										name = self.field_names[bit.description]
 									else:
-										print 'there are %d other bits' % len(reg.bits)
-										print "unknown name for this register:"
-										print bit.description
+										#print('there are %d other bits' % len(reg.bits))
+										#print("unknown name for this register:")
+										#print(bit.description)
 										name = raw_input("name for register? ")
 										self.field_names[bit.description] = name
 										self.dump_fields()
@@ -945,4 +945,4 @@ if __name__ == '__main__':
 
 	b = Builder (sys.argv[1].upper())
 	with codecs.open (sys.argv[2], 'w', 'utf-8') as f:
-		f.write (b.export ())
+		f.write (str(b.export ()))
