@@ -13,7 +13,7 @@ def dash_to_none (v):
 for fname in ['data/pmu.txt', 'data/cru.txt', 'data/ipgating.txt']:
 	with open(fname, 'r') as f:
 		for line in f:
-			vals = map (dash_to_none, re.split (r'\s+', line.strip()))
+			vals = list(map (dash_to_none, re.split (r'\s+', line.strip())))
 
 			module = vals[0]
 			if not module:
@@ -32,7 +32,7 @@ for fname in ['data/pmu.txt', 'data/cru.txt', 'data/ipgating.txt']:
 				if parent_str is not None:
 					parents.append (int(parent_str)) 
 
-			clockdict = dict (zip (('mux', 'gate', 'div', 'frac'), vals[3 + num_parents:]))
+			clockdict = dict (list(zip(('mux', 'gate', 'div', 'frac'), vals[3 + num_parents:])))
 			clockdict['module'] = module
 			clockdict['id'] = clock_id
 			clockdict['clkname'] = clkname

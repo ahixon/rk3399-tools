@@ -211,7 +211,7 @@ class Clock(object):
 
     @property
     def register_children(self):
-        return filter(lambda x: self.__dict__[x] is not None, ('divider', 'frac', 'gate', 'mux'))
+        return [x for x in ('divider', 'frac', 'gate', 'mux') if self.__dict__[x] is not None]
     
     @property
     def clk_src(self):
@@ -229,7 +229,7 @@ class Clock(object):
         if self.gate:
             for g in self.gate:
                 if g.clocking_enabled == None:
-                    print 'warning:', g, 'on', self, 'in undefined state'
+                    print('warning:', g, 'on', self, 'in undefined state')
 
                 assert g.clocking_enabled != None
                 if g.clocking_enabled == False:
@@ -337,17 +337,17 @@ class PLL(Clock):
 
     @property
     def foutvco(self):
-        assert self.refdiv in xrange(1, 63 + 1)
+        assert self.refdiv in range(1, 63 + 1)
         assert self.dsmpd in (0, 1)
         """Fractional PLL non-divided output frequency"""
 
         if self.dsmpd == 1:
             # DSM is disabled, "integer mode"
-            assert self.fbdiv in xrange(16, 3200 + 1)
+            assert self.fbdiv in range(16, 3200 + 1)
             return self.fref / self.refdiv * self.fbdiv
         else:
             # DSM is enabled, "fractional mode"
-            assert self.fbdiv in xrange(20, 320 + 1)
+            assert self.fbdiv in range(20, 320 + 1)
             return self.fref / self.refdiv * (self.fbdiv + self.frac / 2**24)
 
     @property
@@ -358,7 +358,7 @@ class PLL(Clock):
     @property
     def clk(self):
         if self.selected_clk_idx is None:
-            print self, 'has invalid PLL_WORK_MODE'
+            print(self, 'has invalid PLL_WORK_MODE')
 
         assert self.selected_clk_idx is not None
         assert self.bypass is not None

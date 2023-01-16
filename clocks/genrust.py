@@ -56,8 +56,8 @@ class RegisterAccess(object):
             # zero indexed
             bitrange = self.bits[0] - self.bits[1]
             if bitrange <= 0:
-                print self.bits
-                print bitrange
+                print(self.bits)
+                print(bitrange)
                 assert False
 
             mask = '((1 << %d) - 1)' % bitrange
@@ -83,8 +83,8 @@ class RegisterAccess(object):
             # zero indexed
             bitrange = self.bits[0] - self.bits[1]
             if bitrange <= 0:
-                print self.bits
-                print bitrange
+                print(self.bits)
+                print(bitrange)
                 assert False
 
             mask = '((1 << %d) - 1)' % bitrange
@@ -119,8 +119,8 @@ class RegisterAccess(object):
             # bit range, ordered (msb, lsb) tuple
             bitrange = self.bits[0] - self.bits[1]
             if bitrange <= 0:
-                print self.bits
-                print bitrange
+                print(self.bits)
+                print(bitrange)
                 assert False
 
             rust_reg_value = '(%s >> %d) & ((1 << %d) - 1)' % (
@@ -141,7 +141,7 @@ REGPREFIX_PROP = {
     'ICG_': 'ICG', # ???
 }
 
-REGPREFIX_PROP_REGEX = '(%s)' % '|'.join(REGPREFIX_PROP.keys())
+REGPREFIX_PROP_REGEX = '(%s)' % '|'.join(list(REGPREFIX_PROP.keys()))
 
 # these are the names listed in the tables in the TRM
 REGPREFIX_NAME = {
@@ -248,5 +248,5 @@ def reg_to_rust_peripheral(regname):
         regname = m.group(1)
         return reg_to_rust_peripheral(regname)
 
-    print 'unknown peripheral', regname
+    print('unknown peripheral', regname)
     assert False

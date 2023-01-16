@@ -51,8 +51,8 @@ class ClockManager(object):
             elif clock_info['div'] == 'INVERT':
                 pass
             else:
-                print "error: div not null but non-fixed and more than one"
-                print clock_info['div']
+                print("error: div not null but non-fixed and more than one")
+                print(clock_info['div'])
                 assert len(div_regs) == 1
 
         if clock_info['frac']:
@@ -83,7 +83,7 @@ class ClockManager(object):
                 clk_rate = self.known_clock_rates[clk_name]
 
             if clk_rate is None:
-                print 'WARNING: unknown clock rate for IO clock', clk_name
+                print('WARNING: unknown clock rate for IO clock', clk_name)
 
             clock = FixedClock(clock_info['id'], clk_name, clock_info['module'], clk_rate)
             self.load_clock(clock, clock_info)
@@ -108,7 +108,7 @@ class ClockManager(object):
         # and now link up the mux list
         for clock_info in clocks:
             clock = self.clocks[clock_info['id']]
-            clock.parents = map(lambda x: self.clocks[x], clock.parents)
+            clock.parents = [self.clocks[x] for x in clock.parents]
 
             if clock_info['mux']:
                 mux_regs = extract_registers(clock_info['mux'])
@@ -127,7 +127,7 @@ class ClockManager(object):
         r += indent + 'print!("%s%s: ");\n' % (print_indent, dumpname)
 
         if isinstance(reg, list):
-            rust_expr = '|'.join (map (lambda x: x.rust_expr(), reg))
+            rust_expr = '|'.join ([x.rust_expr() for x in reg])
 
             rust_access = 'println!("%s0x{:x}", %s);' % (print_indent_val, rust_expr)
         else:
@@ -170,7 +170,7 @@ class RustClockManager(ClockManager):
                         # bit range
                         m = re.match('\[(\d+)\s*:\s*(\d+)\]', bits)
                         assert m
-                        parsed_bits = map(int, [m.group(1), m.group(2)])
+                        parsed_bits = list(map(int, [m.group(1), m.group(2)]))
                     else:
                         # single bit
                         parsed_bits = int(bits)
@@ -213,7 +213,7 @@ pub fn setup_clocks() {
         reg_states = defaultdict(list)
 
         # collect all the register bits we will be writing to and their values
-        for clock in self.clocks.values():
+        for clock in list(self.clocks.values()):
             for reg in clock.register_map:
                 write_reg = self.get_write_reg(clock, reg, clock.register_map[reg], 1, reg)
                 reg_states[write_reg.accessor].append(write_reg)
@@ -239,7 +239,7 @@ pub fn setup_clocks() {
 
         for accessor in sorted(reg_states):
             if accessor == 'grf.grf_soc_con5':
-                print 'skipping grf.grf_soc_con5; seems to be wrong register?'
+                print('skipping grf.grf_soc_con5; seems to be wrong register?')
                 continue
                 
             reg_writes = reg_states[accessor][:]
@@ -283,14 +283,14 @@ pub fn setup_clocks() {
                     # one reg write and we're mixing and matching whole and partial writes!
                     assert not write.whole_register
 
-                rust_values = ' | \n        '.join (map (lambda x: x.rust_value, reg_writes))
+                rust_values = ' | \n        '.join ([x.rust_value for x in reg_writes])
                 rust_expr = '%s.modify(|r, w| unsafe { w.bits(r.bits() | \n        %s) })' % (
                     accessor, rust_values)
-                bit_names = map(lambda x: x.bit_name, reg_writes)
+                bit_names = [x.bit_name for x in reg_writes]
 
-            bit_names_comment = ', '.join (filter(lambda x: x is not None, bit_names))
+            bit_names_comment = ', '.join ([x for x in bit_names if x is not None])
             if len(bit_names_comment) > 72:
-                bit_names_comment = ',\n    // '.join (filter(lambda x: x is not None, bit_names))
+                bit_names_comment = ',\n    // '.join ([x for x in bit_names if x is not None])
 
             r += '    // %s\n' % bit_names_comment
             r += '    println!("%s");\n' % accessor
@@ -313,7 +313,7 @@ pub fn print_clocks() {
 
         r += '\n'
 
-        for clock in self.clocks.values():
+        for clock in list(self.clocks.values()):
             r += '    println!("%s: ");\n' % clock.name
 
             for reg in clock.register_map:
@@ -328,7 +328,7 @@ pub fn print_clocks() {
                     # FIXME: handle multiple gates
                     # for now we just take the first one
                     if len(child_obj) > 1:
-                        print 'WARNING: only using one gate from', clock
+                        print('WARNING: only using one gate from', clock)
 
                     child_obj = child_obj[0]
                 
@@ -349,7 +349,7 @@ pub fn print_clocks() {
         r += '%s%s: ' % (print_indent, dumpname)
 
         if isinstance(reg, list):
-            reg_val = '|'.join (map (lambda x: x.from_obj(), reg))
+            reg_val = '|'.join ([x.from_obj() for x in reg])
         else:
             if reg.from_obj is None:
                 # just pull named reg from obj
@@ -364,7 +364,7 @@ pub fn print_clocks() {
     def save_dump(self):
         r = ''
 
-        for clock in self.clocks.values():
+        for clock in list(self.clocks.values()):
             r += '%s: \n' % clock.name
 
             for reg in clock.register_map:
@@ -379,7 +379,7 @@ pub fn print_clocks() {
                     # FIXME: handle multiple gates
                     # for now we just take the first one
                     if len(child_obj) > 1:
-                        print 'WARNING: only using one gate from', clock
+                        print('WARNING: only using one gate from', clock)
 
                     child_obj = child_obj[0]
                 
@@ -437,7 +437,7 @@ pub fn print_clocks() {
                 continue
 
             # unhandled format
-            print line
+            print(line)
             assert False
 
 def main():

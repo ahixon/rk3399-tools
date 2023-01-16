@@ -15,7 +15,7 @@ class ClockJSONEncoder(JSONEncoder):
                 'id': obj.clk_id,
                 'clkname': obj.name,
                 'module': obj.module,
-                'parents': map(lambda x: x.clk_id, obj.parents)
+                'parents': [x.clk_id for x in obj.parents]
             }
 
             try:
@@ -83,7 +83,7 @@ clockman = load_clockman()
 
 @app.route('/clocks/all')
 def all_clocks():
-    return jsonify(clockman.clocks.values())
+    return jsonify(list(clockman.clocks.values()))
 
 @app.route('/clocks/<clkname>', methods=('GET', 'POST'))
 def clock(clkname):
@@ -104,7 +104,7 @@ def clock(clkname):
 
 @app.route('/state/dump/<fname>')
 def dump_state(fname):
-    with open(fname, 'wb') as f:
+    with open(fname, 'w', encoding='utf-8') as f:
         f.write(clockman.save_dump())
 
     return jsonify({'status': 'ok'})
@@ -112,7 +112,7 @@ def dump_state(fname):
 @app.route('/state/load/<fname>')
 def load_state(fname):
     global clockman
-    with open(fname, 'rb') as f:
+    with open(fname, 'r', encoding='utf-8') as f:
         clockman.load_dump(f)
 
     return jsonify({'status': 'ok'})
