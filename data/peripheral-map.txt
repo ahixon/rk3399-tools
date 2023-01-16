@@ -4,6 +4,7 @@ CORE_PERIPHERAL_BASE	F800_0000
 
 # and will add back one of these,
 # depending on the specified target
+# see also `6.4.2 Memory Remap for PERILPM0` in the TRM Part 1
 MCU_PERIPHERAL_BASE_M0	0x40000000
 MCU_PERIPHERAL_BASE_AP	F800_0000
 
