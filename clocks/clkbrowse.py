@@ -111,7 +111,6 @@ def dump_state(fname):
 
 @app.route('/state/load/<fname>')
 def load_state(fname):
-    global clockman
     with open(fname, 'r', encoding='utf-8') as f:
         clockman.load_dump(f)
 

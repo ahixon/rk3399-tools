@@ -538,11 +538,9 @@
 
               var clk = document.allNodes[item];
 
+
               // tell clockserver to update
-              // but only on first list type, otherwise we'll send multiple events
-              if (j == 0) {
-                loadJSON ('/clocks/' + clk.label, null, null, { 'gateEnabled': clk.gateEnabled });
-              }
+              loadJSON ('/clocks/' + clk.label, null, null, { 'gateEnabled': clk.gateEnabled });
 
               if (event == 'remove') {
                 var existing = document.getElementById(listType + 'list-' + item);

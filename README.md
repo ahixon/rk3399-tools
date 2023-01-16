@@ -37,9 +37,11 @@ Depending on the selected core, the following will be different:
 
 Allows you to browse the clock tree and gates in a map, disable/enable particular gates and their dependencies.
 
+The UI needs some love, and the map will often show multiple nodes on top of each other. Drag it to move it out of the way.
+
 Double clicking a clock will disable it in the map, and all downstream clocks. It will not let you enable clocks where the parent is disabled.
 
-You can save the state by doing a GET `/state/dump/<fname>`, and hydrate the clock state using GET `/state/load/<fname>`.
+You can save the state by doing a GET `/state/dump/<fname>`, and hydrate the clock tree state using GET `/state/load/<fname>`.
 
 You can also use the following APIs to:
 * GET `/clocks/all`
@@ -53,7 +55,7 @@ python3 -m pip install flask
 python3 -m flask --app clkbrowse run
 ```
 
-To generate the source `clocks.json` file, which contains the clock tree data:
+and to generate the source `clocks.json` file, which contains the clock tree data:
 
 ```
 python3 genjson.py
@@ -67,5 +69,5 @@ The data files come from the TRM, specifically the tables in `2.3 System Clock S
 python3 clktool.py
 ```
 
-* will generate `clock_dump.rs`, which dumps the current clock tree into a format that can be loaded into the clock explorer.
-* loads a dump file called `mostoff.txt` and generates `clock_init.rs`, which sets up clocks as per the dump file.
+* will generate `clock_dump.rs`, which creates a Rust program that dumps the current clock tree into a format that can be loaded into the clock explorer (see above)
+* loads a dump file called `mostoff.txt` and generates `clock_init.rs`, which is a Rust program that sets up clocks as per your dump file.
